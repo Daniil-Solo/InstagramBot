@@ -11,7 +11,13 @@ class HomeWindow(QMainWindow):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
-        self.parameters = dict()
+        self.parameters = {
+            "n_potential_clients": 10,
+            "n_likes": 1,
+            "timeout": 60,
+            "like_mode": 1,
+            "popularity": [100, 500]
+        }
         self.start_load()
         self.all_connection()
 

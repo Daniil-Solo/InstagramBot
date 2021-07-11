@@ -13,12 +13,12 @@ class Session:
         if not master_status:
             return False, message
 
-        master = Master(name=master_name, browser=self._browser)
+        master = Master(master_name, self._browser)
         potential_clients, potential_clients_status, message = master.get_potential_clients(self._parameters)
         if not potential_clients_status:
             return False, message
-
         self.potential_clients = potential_clients
+        print(self.potential_clients[:10])
         return True, ""
 
     def like_generated_users(self):

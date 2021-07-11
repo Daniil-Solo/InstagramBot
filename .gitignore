@@ -2,3 +2,5 @@
 __pycache__
 Drivers/chromedriver.exe
 Source/authorization.json
+Source/unliked_users.json
+Source/masters.txt

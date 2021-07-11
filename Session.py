@@ -1,4 +1,5 @@
 from Master import Master
+from User import User
 
 
 class Session:
@@ -41,7 +42,7 @@ class Session:
             if not masters:
                 return None, False, "Нет подходящего мастера в файле master.txt"
             master_name = masters.pop(0)
-            master = Master(master_name, self._browser)
+            master = User(master_name, self._browser)
             if master.is_correct():
                 stop = True
 

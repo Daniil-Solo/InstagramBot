@@ -58,3 +58,6 @@ class InstagramBot:
         time.sleep(time_out)
         password_input.send_keys(Keys.ENTER)
         time.sleep(time_out)
+
+    def get_browser(self):
+        return self._browser

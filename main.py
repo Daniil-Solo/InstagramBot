@@ -3,6 +3,7 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
 
 from InstagramBot import InstagramBot
+from Session import Session
 
 
 class HomeWindow(QMainWindow):
@@ -10,6 +11,7 @@ class HomeWindow(QMainWindow):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = InstagramBot()
+        self.parameters = dict()
         self.start_load()
         self.all_connection()
 
@@ -19,6 +21,7 @@ class HomeWindow(QMainWindow):
 
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
+        self.start_button.clicked.connect(self.handle_start_like)
 
 # обработчики
     def handle_authorizate(self):
@@ -50,6 +53,25 @@ class HomeWindow(QMainWindow):
         for element in [self.login, self.password, self.authorize_button]:
             element.setEnabled(True)
         self.label.setText('')
+
+    def handle_start_like(self):
+        browser = self.my_bot.get_browser()
+        my_session = Session(self.parameters, browser)
+        generation_status, message = my_session.generate_potential_clients()
+        if not generation_status:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Error")
+            msg.setText(message)
+            msg.exec_()
+        else:
+            liking_status, message = my_session.like_generated_users()
+            if not liking_status:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Error")
+                msg.setText(message)
+                msg.exec_()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

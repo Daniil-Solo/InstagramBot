@@ -1,7 +1,9 @@
-class Master:
+from User import User
+
+
+class Master(User):
     def __init__(self, name, browser):
-        self._name = name
-        self._browser = browser
+        super().__init__(name, browser)
 
     def get_potential_clients(self, parameters):
         pass

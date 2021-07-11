@@ -2,7 +2,7 @@ import sys
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
 
-from InstagramBot import InstagramBot
+from Authorizator import Authorizator
 from Session import Session
 
 
@@ -10,7 +10,7 @@ class HomeWindow(QMainWindow):
     def __init__(self):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
-        self.my_bot = InstagramBot()
+        self.my_bot = Authorizator()
         self.parameters = dict()
         self.start_load()
         self.all_connection()
@@ -72,6 +72,7 @@ class HomeWindow(QMainWindow):
                 msg.setWindowTitle("Error")
                 msg.setText(message)
                 msg.exec_()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

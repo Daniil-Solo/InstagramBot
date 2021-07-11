@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 
-class InstagramBot:
+class Authorizator:
     def __init__(self):
         self._browser = None
         self._login = None

@@ -1,0 +1,4 @@
+.idea
+__pycache__
+Drivers/chromedriver.exe
+Source/authorization.json

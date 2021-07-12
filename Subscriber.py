@@ -4,6 +4,7 @@ import time
 
 from User import User
 
+
 class Subscriber(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
@@ -11,19 +12,19 @@ class Subscriber(User):
 
     def is_unique(self):
         try:
-            with open('Source/unliked_users.json', "r") as read_file:
+            with open('Source/liked_users.json', "r") as read_file:
                 liked_clients_dict = json.load(read_file)
             if self._name in liked_clients_dict:
                 return False
             else:
                 return True
-        except:
+        except FileNotFoundError:
             return True
 
     def satisfies_parameters(self, parameters):
         self.get_n_subscribers()
-        poplularity = parameters["popularity"]
-        return self._has_posts() and poplularity[0] <= self.n_subscribers <= poplularity[1]
+        lower_border, upper_border = parameters["popularity"]
+        return self._has_posts() and lower_border <= self.n_subscribers <= upper_border
 
     def get_post(self, mode="actual"):
         if self.posts is None:

@@ -2,7 +2,6 @@ import json
 import time
 import random
 
-from Subscriber import Subscriber
 from User import User
 
 
@@ -18,13 +17,12 @@ class Master(User):
             if self.n_subscribers < self.limit:
                 count_subscribers = self.n_subscribers
             self.scroll_down(count_subscribers)
-            subscriber_names = self.find_subscribers_urls()
+            subscriber_names = self.find_subscribers_names()
             return subscriber_names, True, ""
         except Exception as ex:
             return [], False, str(ex)
 
-
-    def find_subscribers_urls(self):
+    def find_subscribers_names(self):
         followers_block = self._browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/ul/div')
         followers = followers_block.find_elements_by_class_name('wo9IH')
         follower_names = []
@@ -45,32 +43,3 @@ class Master(User):
                 "arguments[0].scrollTop = arguments[0].scrollHeight", followers_panel
             )
             time.sleep(random.randrange(4, 5))
-
-    def open_liked_users(self):
-        try:
-            with open('Source/unliked_users.json', "r") as read_file:
-                liked_clients_dict = json.load(read_file)
-            return liked_clients_dict
-        except:
-            return dict()
-
-"""
-            potential_clients_names = []
-            for subscriber_name in subscriber_names:
-                subscriber = Subscriber(subscriber_name, self._browser)
-                if subscriber.is_correct():
-                    if subscriber.is_unique() and subscriber.satisfies_parameters(parameters):
-                        potential_clients_names.append(subscriber_name)
-                time.sleep(random.randrange(3, 6))
-            n_real_potential_clients = len(potential_clients_names)
-            n_parameters_potential_clients = parameters["n_potential_clients"]
-            if n_parameters_potential_clients < n_real_potential_clients:
-                self.save_unliked_potential_clients(potential_clients_names[n_parameters_potential_clients:])
-                return potential_clients_names[:n_parameters_potential_clients], True, ""
-            else:
-                return potential_clients_names[:n_real_potential_clients], True, ""
-
-
-
-
-"""

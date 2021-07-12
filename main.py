@@ -14,11 +14,11 @@ class HomeWindow(QMainWindow):
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
         self.parameters = {
-            "n_potential_clients": 50,
+            "n_potential_clients": 1,
             "n_likes": 1,
             "timeout": 60,
             "like_mode": 0,
-            "popularity": [100, 500]
+            "popularity": [50, 700]
         }
         self.start_load()
         self.all_connection()
@@ -66,7 +66,7 @@ class HomeWindow(QMainWindow):
     def handle_start_like(self):
         browser = self.my_bot.get_browser()
         my_session = Session(self.parameters, browser)
-        generation_status, message = my_session.generate_potential_clients()
+        generation_status, message = my_session.generate_subscribers()
         if not generation_status:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
@@ -74,7 +74,7 @@ class HomeWindow(QMainWindow):
             msg.setText(message)
             msg.exec_()
         else:
-            liking_status, message = my_session.like_generated_users(self)
+            liking_status, message = my_session.like_generated_users()
             if not liking_status:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Warning)

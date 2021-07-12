@@ -1,3 +1,4 @@
+import json
 import time
 
 from Master import Master
@@ -9,34 +10,42 @@ class Session:
     def __init__(self, parameters, browser):
         self._parameters = parameters
         self._browser = browser
-        self.potential_clients = None
+        self.users = None
+        self.unliked_users = None
 
-    def generate_potential_clients(self):
+    def generate_subscribers(self):
         try:
             master_name, master_status, message = self.get_master()
             if not master_status:
                 return False, message
 
             master = Master(master_name, self._browser)
-            potential_clients, potential_clients_status, message = master.get_potential_clients(self._parameters)
-            if not potential_clients_status:
+            all_parsed_clients, potential_clients_status, message = master.get_clients()
+            if not all_parsed_clients:
                 return False, message
-            self.potential_clients = potential_clients
+            self.users = all_parsed_clients
             return True, ""
         except Exception as ex:
             return False, str(ex)
 
-    def like_generated_users(self, main):
+    def like_generated_users(self):
         count = 0
-        n = len(self.potential_clients)
-        for client_name in self.potential_clients:
+        full = False
+        self.unliked_users = []
+        for client_name in self.users:
             client = Subscriber(client_name, self._browser)
-            client.get_post(mode="actual")
-            client.like_posts(self._parameters)
-            time.sleep(self._parameters['timeout'])
-            count += 1
-            main.process(int(count/n*100))
-            time.sleep(1)
+            if client.is_correct():
+                if not full:
+                    if client.is_unique() and client.satisfies_parameters(self._parameters):
+                        client.get_post(mode="actual")
+                        client.like_posts(self._parameters)
+                        time.sleep(self._parameters['timeout'])
+                        count += 1
+                        if count == self._parameters["n_potential_clients"]:
+                            full = True
+                else:
+                    self.unliked_users.append(client_name)
+        self.save_unliked_users()
         return True, ""
 
     def get_master(self):
@@ -46,7 +55,7 @@ class Session:
                 for line in f:
                     if line != '':
                         masters.append(line)
-        except:
+        except FileNotFoundError:
             return None, False, "Отсутствует файл master.txt"
         if not masters:
             return None, False, "Файл master.txt пуст"
@@ -65,3 +74,16 @@ class Session:
             for item in masters:
                 f.write(item)
         return master_name, True, ""
+
+    def save_unliked_users(self):
+        unliked_clients_dict = dict()
+        try:
+            with open('Source/unliked_users.json', "r") as read_file:
+                unliked_clients_dict = json.load(read_file)
+        except FileNotFoundError:
+            pass
+        finally:
+            for user in self.unliked_users:
+                unliked_clients_dict[user] = 1
+            with open('Source/unliked_users.json', "w") as write_file:
+                json.dump(unliked_clients_dict, write_file)

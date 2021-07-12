@@ -1,4 +1,6 @@
 import sys
+import time
+
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
 
@@ -12,10 +14,10 @@ class HomeWindow(QMainWindow):
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
         self.parameters = {
-            "n_potential_clients": 10,
+            "n_potential_clients": 50,
             "n_likes": 1,
             "timeout": 60,
-            "like_mode": 1,
+            "like_mode": 0,
             "popularity": [100, 500]
         }
         self.start_load()
@@ -29,9 +31,10 @@ class HomeWindow(QMainWindow):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
 
-# обработчики
+    # обработчики
     def handle_authorizate(self):
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
+        self.label.show()
         for element in [self.login, self.password, self.authorize_button]:
             element.setEnabled(False)
         login = self.login.text()
@@ -71,7 +74,7 @@ class HomeWindow(QMainWindow):
             msg.setText(message)
             msg.exec_()
         else:
-            liking_status, message = my_session.like_generated_users()
+            liking_status, message = my_session.like_generated_users(self)
             if not liking_status:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Warning)
@@ -79,9 +82,15 @@ class HomeWindow(QMainWindow):
                 msg.setText(message)
                 msg.exec_()
 
+    def process(self, i):
+        self.progressBar.setValue(i)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = HomeWindow()
     window.show()
     sys.exit(app.exec_())
+
+
+

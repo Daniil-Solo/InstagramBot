@@ -18,22 +18,33 @@ class User:
         time.sleep(time_out)
 
     def get_n_post(self):
-        if self._has_posts():
-            string_n_post = self._browser.find_element_by_xpath(
-                '/html/body/div[1]/section/main/div/header/section/ul/li[1]/span/span'
-            ).text
-            n_post = self.number_n_sub(string_n_post)
-            self.n_posts = n_post
-            return n_post
+        if self.n_posts is None:
+            if self._has_posts():
+                string_n_post = self._browser.find_element_by_xpath(
+                    '/html/body/div[1]/section/main/div/header/section/ul/li[1]/span/span'
+                ).text
+                n_post = self.number_n_sub(string_n_post)
+                self.n_posts = n_post
+                return n_post
+            else:
+                self.n_posts = 0
+                return 0
         else:
-            return 0
+            return self.n_posts
 
     def get_n_subscribers(self):
-        string_n_subscribers = self._browser.find_element_by_xpath(
-            '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a/span').text
-        n_subscribers = self.number_n_sub(string_n_subscribers)
-        self.n_subscribers = n_subscribers
-        return n_subscribers
+        if self.n_subscribers is None:
+            try:
+                string_n_subscribers = self._browser.find_element_by_xpath(
+                    '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a/span').text
+            except:
+                string_n_subscribers = self._browser.find_element_by_xpath(
+                    '/html/body/div[1]/section/main/div/header/section/ul/li[2]/span/span').text
+            n_subscribers = self.number_n_sub(string_n_subscribers)
+            self.n_subscribers = n_subscribers
+            return n_subscribers
+        else:
+            return self.n_subscribers
 
     @staticmethod
     def number_n_sub(string_n_subscribers):

@@ -9,31 +9,33 @@ from User import User
 class Master(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
-        self.limit = 50
+        self.limit = 200
 
     def get_potential_clients(self, parameters):
-        self.get_n_subscribers()
-        count_subscribers = self.limit
-        if self.n_subscribers < self.limit:
-            count_subscribers = self.n_subscribers
+        try:
+            self.get_n_subscribers()
+            count_subscribers = self.limit
+            if self.n_subscribers < self.limit:
+                count_subscribers = self.n_subscribers
 
-        self.scroll_down(count_subscribers)
-        subscriber_names = self.find_subscribers_urls()
-        potential_clients_names = []
-        for subscriber_name in subscriber_names:
-            subscriber = Subscriber(subscriber_name, self._browser)
-            if subscriber.is_correct():
-                if subscriber.is_unique() and subscriber.satisfies_parameters(parameters):
-                    potential_clients_names.append(subscriber_name)
-            time.sleep(1)
-        n_real_potential_clients = len(potential_clients_names)
-        n_parameters_potential_clients = parameters["n_potential_clients"]
-        if n_parameters_potential_clients < n_real_potential_clients:
-            self.save_unliked_potential_clients(potential_clients_names[:n_parameters_potential_clients])
-            return potential_clients_names[:n_parameters_potential_clients], True, ""
-        else:
-            return potential_clients_names[:n_real_potential_clients], True, ""
-
+            self.scroll_down(count_subscribers)
+            subscriber_names = self.find_subscribers_urls()
+            potential_clients_names = []
+            for subscriber_name in subscriber_names:
+                subscriber = Subscriber(subscriber_name, self._browser)
+                if subscriber.is_correct():
+                    if subscriber.is_unique() and subscriber.satisfies_parameters(parameters):
+                        potential_clients_names.append(subscriber_name)
+                time.sleep(1)
+            n_real_potential_clients = len(potential_clients_names)
+            n_parameters_potential_clients = parameters["n_potential_clients"]
+            if n_parameters_potential_clients < n_real_potential_clients:
+                self.save_unliked_potential_clients(potential_clients_names[n_parameters_potential_clients:])
+                return potential_clients_names[:n_parameters_potential_clients], True, ""
+            else:
+                return potential_clients_names[:n_real_potential_clients], True, ""
+        except Exception as ex:
+            return [], False, str(ex)
     def find_subscribers_urls(self):
         followers_block = self._browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/ul/div')
         followers = followers_block.find_elements_by_class_name('wo9IH')
@@ -48,13 +50,13 @@ class Master(User):
         loop_count = max(count_subscribers, 12) // 12
         subs_button = '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a/span'
         self._browser.find_element_by_xpath(subs_button).click()
-        time.sleep(0.5)
+        time.sleep(2)
         followers_panel = self._browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]')
         for _ in range(loop_count):
             self._browser.execute_script(
                 "arguments[0].scrollTop = arguments[0].scrollHeight", followers_panel
             )
-            time.sleep(random.randrange(2, 3))
+            time.sleep(random.randrange(4, 5))
 
     def save_unliked_potential_clients(self, unliked_clients):
         unliked_clients_dict = dict()

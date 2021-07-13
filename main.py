@@ -1,5 +1,6 @@
 import sys
 import time
+import json
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
@@ -13,19 +14,27 @@ class HomeWindow(QMainWindow):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
-        self.parameters = {
-            "n_potential_clients": 20,
-            "n_likes": 1,
-            "timeout": 60,
-            "like_mode": 0,
-            "popularity": [50, 700]
-        }
+        self.parameters = None
         self.start_load()
         self.all_connection()
 
     def start_load(self):
         for element in [self.parameters_textbox, self.change_parameters_button, self.start_button, self.progressBar]:
             element.setEnabled(False)
+
+        try:
+            with open('Source/parameters.json', 'r') as read_file:
+                self.parameters = json.load(read_file)
+        except FileNotFoundError:
+            self.parameters = {
+                "n_potential_clients": 60,
+                "n_likes": 1,
+                "timeout": 60,
+                "like_mode": 0,
+                "popularity": [100, 500]
+            }
+            with open('Source/parameters.json', 'w') as wrie_file:
+                json.dump(self.parameters, wrie_file)
 
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)

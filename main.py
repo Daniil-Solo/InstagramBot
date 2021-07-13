@@ -14,7 +14,7 @@ class HomeWindow(QMainWindow):
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
         self.parameters = {
-            "n_potential_clients": 1,
+            "n_potential_clients": 20,
             "n_likes": 1,
             "timeout": 60,
             "like_mode": 0,

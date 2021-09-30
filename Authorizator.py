@@ -18,7 +18,8 @@ class Authorizator:
         else:
             self._login, self._password = login, password
         try:
-            self._browser = webdriver.Chrome(ChromeDriverManager().install())
+            if self._browser is None:
+                self._browser = webdriver.Chrome(ChromeDriverManager().install())
         except:
             return False, "Вебдрайвер не найден или устарел"
         try:

@@ -4,6 +4,7 @@ import json
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
+from threading import Thread
 
 from Authorizator import Authorizator
 from Session import Session
@@ -21,7 +22,7 @@ class HomeWindow(QMainWindow):
         self.show_parameters()
 
     def start_load(self):
-        for element in [ self.change_parameters_button, self.start_button, self.progressBar]:
+        for element in [self.change_parameters_button, self.start_button, self.progressBar]:
             element.setEnabled(False)
 
         try:
@@ -53,7 +54,6 @@ class HomeWindow(QMainWindow):
     def show_parameters(self):
         text = "Параметры отсутствуют"
         try:
-
             with open('Source/parameters_view.txt', 'r', encoding='UTF-8') as read_file:
                 text_lines = read_file.readlines()
             text = ""
@@ -72,8 +72,13 @@ class HomeWindow(QMainWindow):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
 
-    # обработчики
     def handle_authorizate(self):
+        th = Thread(target=self.authorizate)
+        th.start()
+
+    # обработчики
+    def authorizate(self):
+        self.label.setStyleSheet("color: black;")
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
         self.label.show()
         for element in [self.parameters_textbox, self.login, self.password, self.authorize_button]:
@@ -82,27 +87,22 @@ class HomeWindow(QMainWindow):
         password = self.password.text()
         authorization_status, message = self.my_bot.authorizate(login, password)
 
-        msg = QMessageBox()
-        if authorization_status:
-            msg.setIcon(QMessageBox.Information)
-            msg.setWindowTitle("Successfully")
-        else:
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Error")
-        msg.setText(message)
-        msg.exec_()
+        text = ""
 
         if authorization_status:
             for element in [self.parameters_textbox, self.change_parameters_button, self.start_button,
                             self.progressBar]:
                 element.setEnabled(True)
+            self.label.setStyleSheet("color: green;")
         else:
             for element in [self.parameters_textbox, self.change_parameters_button, self.start_button,
                             self.progressBar]:
                 element.setEnabled(False)
+            self.label.setStyleSheet("color: red;")
+
         for element in [self.login, self.password, self.authorize_button]:
             element.setEnabled(True)
-        self.label.setText('')
+        self.label.setText(text + message)
 
     def handle_start_like(self):
         browser = self.my_bot.get_browser()

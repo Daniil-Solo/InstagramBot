@@ -35,6 +35,7 @@ class Session:
         self.unliked_users = []
         self.liked_users = []
         for client_name in self.users:
+            time.sleep(5)
             try:
                 client = Subscriber(client_name, self._browser)
                 if client.is_correct():

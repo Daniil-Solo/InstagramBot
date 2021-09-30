@@ -100,6 +100,3 @@ if __name__ == "__main__":
     window = HomeWindow()
     window.show()
     sys.exit(app.exec_())
-
-
-

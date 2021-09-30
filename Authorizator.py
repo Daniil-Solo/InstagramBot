@@ -2,6 +2,7 @@ import json
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 class Authorizator:
@@ -17,7 +18,7 @@ class Authorizator:
         else:
             self._login, self._password = login, password
         try:
-            self._browser = webdriver.Chrome(executable_path='Drivers//chromedriver.exe')
+            self._browser = webdriver.Chrome(ChromeDriverManager().install())
         except:
             return False, "Вебдрайвер не найден или устарел"
         try:

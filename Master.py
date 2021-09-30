@@ -8,7 +8,7 @@ from User import User
 class Master(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
-        self.limit = 50
+        self.limit = 180
 
     def get_clients(self):
         try:
@@ -23,7 +23,7 @@ class Master(User):
             return [], False, str(ex)
 
     def find_subscribers_names(self):
-        followers_block = self._browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/ul/div')
+        followers_block = self._browser.find_element_by_xpath('/html/body/div[6]/div/div/div[2]/ul/div')
         followers = followers_block.find_elements_by_class_name('wo9IH')
         follower_names = []
         for follower in followers:
@@ -37,7 +37,7 @@ class Master(User):
         subs_button = '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a/span'
         self._browser.find_element_by_xpath(subs_button).click()
         time.sleep(2)
-        followers_panel = self._browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]')
+        followers_panel = self._browser.find_element_by_xpath('/html/body/div[6]/div/div/div[2]')
         for _ in range(loop_count):
             self._browser.execute_script(
                 "arguments[0].scrollTop = arguments[0].scrollHeight", followers_panel

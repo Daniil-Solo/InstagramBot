@@ -2,6 +2,8 @@ import json
 import random
 import time
 
+from selenium.common.exceptions import NoSuchElementException
+
 from User import User
 
 
@@ -74,7 +76,16 @@ class Subscriber(User):
     def like_this_post(self, post_url):
         self._browser.get(post_url)
         time.sleep(2)
-        like_button = '/html/body/div[1]/section/main/div/div[1]/article/div[3]/section[1]/span[' \
-                      '1]/button'
-        self._browser.find_element_by_xpath(like_button).click()
+        xpaths = [
+            "/html/body/div[1]/section/main/div/div[1]/article/div/div[3]/div/div/section[1]/span[1]/button",
+            "/html/body/div[6]/div[2]/div/article/div/div[2]/div/div[2]/section[1]/span[1]/button",
+            "/html/body/div[1]/section/main/div/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button"
+
+        ]
+        for xpath in xpaths:
+            try:
+                self._browser.find_element_by_xpath(xpath).click()
+                print("Ok")
+            except NoSuchElementException:
+                print("Error")
         time.sleep(2)

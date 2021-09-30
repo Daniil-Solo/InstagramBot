@@ -18,9 +18,10 @@ class HomeWindow(QMainWindow):
         self.start_load()
         self.all_connection()
         self.autofill()
+        self.show_parameters()
 
     def start_load(self):
-        for element in [self.parameters_textbox, self.change_parameters_button, self.start_button, self.progressBar]:
+        for element in [ self.change_parameters_button, self.start_button, self.progressBar]:
             element.setEnabled(False)
 
         try:
@@ -49,6 +50,24 @@ class HomeWindow(QMainWindow):
             self.login.setText("")
             self.password.setText("")
 
+    def show_parameters(self):
+        text = "Параметры отсутствуют"
+        try:
+
+            with open('Source/parameters_view.txt', 'r', encoding='UTF-8') as read_file:
+                text_lines = read_file.readlines()
+            text = ""
+            for param, line in zip(self.parameters, text_lines):
+                text += line.strip() + " " + str(self.parameters[param]) + '\n'
+        except FileNotFoundError:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Error")
+            msg.setText("Отсутствует файл parameters_view.txt")
+            msg.exec_()
+
+        self.parameters_textbox.setPlainText(text)
+
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
@@ -57,7 +76,7 @@ class HomeWindow(QMainWindow):
     def handle_authorizate(self):
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
         self.label.show()
-        for element in [self.login, self.password, self.authorize_button]:
+        for element in [self.parameters_textbox, self.login, self.password, self.authorize_button]:
             element.setEnabled(False)
         login = self.login.text()
         password = self.password.text()

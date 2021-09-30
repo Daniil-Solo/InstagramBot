@@ -280,11 +280,7 @@
              <bool>true</bool>
             </property>
             <property name="plainText">
-             <string>Количество людей: 50
-Количество лайков на пользователя: 1
-Время между лайком двух постов: 60 сек
-Тип выбора поста: последний
-Допустимое количество подписчиков: 100-500</string>
+             <string></string>
             </property>
             <property name="backgroundVisible">
              <bool>false</bool>

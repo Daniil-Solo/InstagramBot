@@ -17,6 +17,7 @@ class HomeWindow(QMainWindow):
         self.parameters = None
         self.start_load()
         self.all_connection()
+        self.autofill()
 
     def start_load(self):
         for element in [self.parameters_textbox, self.change_parameters_button, self.start_button, self.progressBar]:
@@ -33,8 +34,20 @@ class HomeWindow(QMainWindow):
                 "like_mode": 0,
                 "popularity": [100, 500]
             }
-            with open('Source/parameters.json', 'w') as wrie_file:
-                json.dump(self.parameters, wrie_file)
+            with open('Source/parameters.json', 'w') as write_file:
+                json.dump(self.parameters, write_file)
+
+    def autofill(self):
+        try:
+            with open('Source/authorization.json', 'r') as read_file:
+                auth_parameters = json.load(read_file)
+            self.login.setText(auth_parameters['login'])
+            self.password.setText(auth_parameters['password'])
+        except FileNotFoundError:
+            return
+        except TypeError:
+            self.login.setText("")
+            self.password.setText("")
 
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)

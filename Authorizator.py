@@ -33,13 +33,16 @@ class Authorizator:
 
         try:
             self._browser.find_element_by_class_name('eiCW-')
-            self._browser.close()
-            self._browser.quit()
+            self.close_browser()
+            self._browser = None
             return False, "Неправильный логин или пароль"
         except:
             self.save_authorization_data()
             return True, "Вход выполнен успешно"
 
+    def close_browser(self):
+        self._browser.close()
+        self._browser.quit()
 
     def save_authorization_data(self):
         data = {

@@ -71,6 +71,11 @@ class HomeWindow(QMainWindow):
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
+        self.close_button.clicked.connect(self.handle_close)
+
+    def handle_close(self):
+        self.my_bot.close_browser()
+        self.close()
 
     def handle_authorizate(self):
         th = Thread(target=self.authorizate)

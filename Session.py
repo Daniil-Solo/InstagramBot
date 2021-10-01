@@ -7,7 +7,7 @@ from User import User
 
 
 class Session:
-    def __init__(self, parameters, browser):
+    def __init__(self, parameters=None, browser=None):
         self._parameters = parameters
         self._browser = browser
         self.users = None

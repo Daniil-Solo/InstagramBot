@@ -312,9 +312,9 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="change_parameters_button">
+              <widget class="QPushButton" name="collect_subscribers_button">
                <property name="text">
-                <string>Изменить параметры</string>
+                <string>Собрать подписчиков</string>
                </property>
               </widget>
              </item>

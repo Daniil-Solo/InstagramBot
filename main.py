@@ -22,7 +22,7 @@ class HomeWindow(QMainWindow):
         self.show_parameters()
 
     def start_load(self):
-        for element in [self.change_parameters_button, self.start_button, self.progressBar]:
+        for element in [self.collect_subscribers_button, self.start_button, self.progressBar]:
             element.setEnabled(False)
 
         try:
@@ -65,13 +65,40 @@ class HomeWindow(QMainWindow):
             msg.setWindowTitle("Error")
             msg.setText("Отсутствует файл parameters_view.txt")
             msg.exec_()
-
         self.parameters_textbox.setPlainText(text)
 
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
         self.close_button.clicked.connect(self.handle_close)
+        self.collect_subscribers_button.clicked.connect(self.handle_collect_subscribers)
+
+    def handle_collect_subscribers(self):
+        th = Thread(target=self.collect_subscribers)
+        th.start()
+
+    def collect_subscribers(self):
+        browser = self.my_bot.get_browser()
+        my_session = Session(None, browser)
+        generation_status, message = my_session.generate_subscribers()
+        if generation_status:
+            self.label.setStyleSheet("color: green;")
+        else:
+            self.label.setStyleSheet("color: red;")
+            message = "Ошибка: " + message
+        self.label.setText(message)
+
+        with open('Source/unliked_users.json', 'r') as read_file:
+            current_users = json.load(read_file)
+
+        collect_users = set(current_users.keys) + set(my_session.users)
+
+        user_dict = dict()
+        for user in collect_users:
+            user_dict[user] = 1
+
+        with open('Source/unliked_users.json', 'w') as write_file:
+            json.dump(user_dict, write_file)
 
     def handle_close(self):
         self.my_bot.close_browser()
@@ -95,12 +122,12 @@ class HomeWindow(QMainWindow):
         text = ""
 
         if authorization_status:
-            for element in [self.parameters_textbox, self.change_parameters_button, self.start_button,
+            for element in [self.parameters_textbox, self.collect_subscribers_button, self.start_button,
                             self.progressBar]:
                 element.setEnabled(True)
             self.label.setStyleSheet("color: green;")
         else:
-            for element in [self.parameters_textbox, self.change_parameters_button, self.start_button,
+            for element in [self.parameters_textbox, self.collect_subscribers_button, self.start_button,
                             self.progressBar]:
                 element.setEnabled(False)
             self.label.setStyleSheet("color: red;")

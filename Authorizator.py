@@ -1,6 +1,7 @@
 import json
 import time
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -20,11 +21,8 @@ class Authorizator:
         try:
             if self._browser is None:
                 self._browser = webdriver.Chrome(ChromeDriverManager().install())
-        except:
-            return False, "Вебдрайвер не найден или устарел"
-        try:
             self._browser.get(url='https://www.instagram.com/')
-        except:
+        except WebDriverException:
             return False, "Отсутствует подключение к интернету"
 
         time.sleep(3)
@@ -36,7 +34,7 @@ class Authorizator:
             self.close_browser()
             self._browser = None
             return False, "Неправильный логин или пароль"
-        except:
+        except NoSuchElementException:
             self.save_authorization_data()
             return True, "Вход выполнен успешно"
 
@@ -46,9 +44,9 @@ class Authorizator:
 
     def save_authorization_data(self):
         data = {
-                "login": self._login,
-                "password": self._password
-                }
+            "login": self._login,
+            "password": self._password
+        }
         with open('Source/authorization.json', "w") as write_file:
             json.dump(data, write_file)
 

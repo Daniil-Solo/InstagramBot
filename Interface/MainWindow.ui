@@ -62,6 +62,12 @@
        </property>
        <item>
         <widget class="QLabel" name="app_name">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -79,7 +85,7 @@
         <widget class="QFrame" name="service_buttons">
          <property name="maximumSize">
           <size>
-           <width>90</width>
+           <width>120</width>
            <height>30</height>
           </size>
          </property>
@@ -105,6 +111,23 @@
           <property name="bottomMargin">
            <number>0</number>
           </property>
+          <item>
+           <widget class="QPushButton" name="change_mode_button">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>icons/REPEAT.svg</normaloff>icons/REPEAT.svg</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="fix_position_butttons">
             <property name="text">
@@ -280,7 +303,7 @@
              <bool>true</bool>
             </property>
             <property name="plainText">
-             <string></string>
+             <string/>
             </property>
             <property name="backgroundVisible">
              <bool>false</bool>

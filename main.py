@@ -16,6 +16,7 @@ class HomeWindow(QMainWindow):
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
         self.parameters = None
+        self.mode = 0
         self.start_load()
         self.all_connection()
         self.autofill()
@@ -56,8 +57,8 @@ class HomeWindow(QMainWindow):
         try:
             with open('Source/parameters_view.txt', 'r', encoding='UTF-8') as read_file:
                 text_lines = read_file.readlines()
-            text = ""
-            for param, line in zip(self.parameters, text_lines):
+            text = text_lines[0]
+            for param, line in zip(self.parameters, text_lines[1:]):
                 text += line.strip() + " " + str(self.parameters[param]) + '\n'
         except FileNotFoundError:
             msg = QMessageBox()
@@ -67,11 +68,36 @@ class HomeWindow(QMainWindow):
             msg.exec_()
         self.parameters_textbox.setPlainText(text)
 
+    def show_parameters_2(self):
+        text = "Параметры отсутствуют"
+        try:
+            with open('Source/parameters2_view.txt', 'r', encoding='UTF-8') as read_file:
+                text_lines = read_file.readlines()
+            text = text_lines[0]
+            for param, line in zip(self.parameters, text_lines[1:]):
+                text += line.strip() + " " + str(self.parameters[param]) + '\n'
+        except FileNotFoundError:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Error")
+            msg.setText("Отсутствует файл parameters2_view.txt")
+            msg.exec_()
+        self.parameters_textbox.setPlainText(text)
+
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start_like)
         self.close_button.clicked.connect(self.handle_close)
         self.collect_subscribers_button.clicked.connect(self.handle_collect_subscribers)
+        self.change_mode_button.clicked.connect(self.handle_change_mode)
+
+    def handle_change_mode(self):
+        if self.mode == 0:
+            self.mode = 1
+            self.show_parameters_2()
+        else:
+            self.mode = 0
+            self.show_parameters()
 
     def handle_collect_subscribers(self):
         th = Thread(target=self.collect_subscribers)
@@ -79,10 +105,11 @@ class HomeWindow(QMainWindow):
 
     def collect_subscribers(self):
         browser = self.my_bot.get_browser()
-        my_session = Session(None, browser)
+        my_session = Session(browser=browser)
         generation_status, message = my_session.generate_subscribers()
         if generation_status:
             self.label.setStyleSheet("color: green;")
+            message = "Сбор завершен успешно"
         else:
             self.label.setStyleSheet("color: red;")
             message = "Ошибка: " + message
@@ -91,7 +118,7 @@ class HomeWindow(QMainWindow):
         with open('Source/unliked_users.json', 'r') as read_file:
             current_users = json.load(read_file)
 
-        collect_users = set(current_users.keys) + set(my_session.users)
+        collect_users = set(current_users.keys()) | set(my_session.users)
 
         user_dict = dict()
         for user in collect_users:

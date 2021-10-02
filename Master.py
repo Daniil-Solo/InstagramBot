@@ -8,15 +8,11 @@ from User import User
 class Master(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
-        self.limit = 180
 
     def get_clients(self):
         try:
             self.get_n_subscribers()
-            count_subscribers = self.limit
-            if self.n_subscribers < self.limit:
-                count_subscribers = self.n_subscribers
-            self.scroll_down(count_subscribers)
+            self.scroll_down(self.n_subscribers)
             subscriber_names = self.find_subscribers_names()
             return subscriber_names, True, ""
         except Exception as ex:

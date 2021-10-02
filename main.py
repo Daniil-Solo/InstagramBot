@@ -164,6 +164,9 @@ class HomeWindow(QMainWindow):
         self.label.setText(text + message)
 
     def handle_start_like(self):
+        for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
+                        self.login, self.password, self.change_mode_button]:
+            element.setEnabled(False)
         browser = self.my_bot.get_browser()
         my_session = Session(self.parameters, browser)
         if self.mode == 0:
@@ -186,12 +189,37 @@ class HomeWindow(QMainWindow):
             with open('Source/unliked_users.json', 'r') as read_file:
                 collected_users = json.load(read_file)
 
+            counter = Counter()
+            self.start_progressing(counter)
             my_session.users = list(collected_users.keys())
-            my_session.like_collected_users()
+            liking_status, message = my_session.like_collected_users(counter)
+            if liking_status:
+                self.label.setStyleSheet("color: green;")
+            else:
+                self.label.setStyleSheet("color: red;")
+            self.label.setText(message)
+
+        for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
+                        self.login, self.password, self.change_mode_button]:
+            element.setEnabled(True)
+
+    def start_progressing(self, counter):
+        th = Thread(target=self.process, args=(counter,))
+        th.start()
+
+    def process(self, counter):
+        while True:
+            self.progressBar.setValue(counter.value)
+            if counter.value == 100:
+                break
 
 
-    def process(self, i):
-        self.progressBar.setValue(i)
+class Counter:
+    def __init__(self):
+        self.value = 0
+
+    def set(self, number):
+        self.value = number
 
 
 if __name__ == "__main__":

@@ -56,9 +56,10 @@ class Session:
         self.save_liked_users()
         return True, ""
 
-    def like_collected_users(self):
+    def like_collected_users(self, counter):
         count = 0
         full = False
+        n_clients = self._parameters["n_potential_clients"]
         self.unliked_users = []
         self.liked_users = []
         for client_name in self.users:
@@ -74,14 +75,16 @@ class Session:
                         self.liked_users.append(client_name)
                         time.sleep(self._parameters['timeout'])
                         count += 1
-                        if count == self._parameters["n_potential_clients"]:
+                        counter.set(int(100*count/n_clients))
+                        if count == n_clients:
+                            counter.set(100)
                             full = True
             except Exception:
                 pass
             time.sleep(5)
         self.save_unliked_users()
         self.save_liked_users()
-        return True, ""
+        return True, "Лайки были успешно проставлены"
 
     def get_master(self):
         try:

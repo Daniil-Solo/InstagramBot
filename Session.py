@@ -56,6 +56,33 @@ class Session:
         self.save_liked_users()
         return True, ""
 
+    def like_collected_users(self):
+        count = 0
+        full = False
+        self.unliked_users = []
+        self.liked_users = []
+        for client_name in self.users:
+            if full:
+                self.unliked_users.append(client_name)
+                continue
+            try:
+                client = Subscriber(client_name, self._browser)
+                if client.is_correct():
+                    if client.is_unique() and client.satisfies_parameters(self._parameters):
+                        client.get_post(mode="actual")
+                        client.like_posts(self._parameters)
+                        self.liked_users.append(client_name)
+                        time.sleep(self._parameters['timeout'])
+                        count += 1
+                        if count == self._parameters["n_potential_clients"]:
+                            full = True
+            except Exception:
+                pass
+            time.sleep(5)
+        self.save_unliked_users()
+        self.save_liked_users()
+        return True, ""
+
     def get_master(self):
         try:
             with open("source/masters.txt", "r") as f:

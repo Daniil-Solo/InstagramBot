@@ -166,21 +166,29 @@ class HomeWindow(QMainWindow):
     def handle_start_like(self):
         browser = self.my_bot.get_browser()
         my_session = Session(self.parameters, browser)
-        generation_status, message = my_session.generate_subscribers()
-        if not generation_status:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Error")
-            msg.setText(message)
-            msg.exec_()
-        else:
-            liking_status, message = my_session.like_generated_users()
-            if not liking_status:
+        if self.mode == 0:
+            generation_status, message = my_session.generate_subscribers()
+            if not generation_status:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Warning)
                 msg.setWindowTitle("Error")
                 msg.setText(message)
                 msg.exec_()
+            else:
+                liking_status, message = my_session.like_generated_users()
+                if not liking_status:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.setWindowTitle("Error")
+                    msg.setText(message)
+                    msg.exec_()
+        else:
+            with open('Source/unliked_users.json', 'r') as read_file:
+                collected_users = json.load(read_file)
+
+            my_session.users = list(collected_users.keys())
+            my_session.like_collected_users()
+
 
     def process(self, i):
         self.progressBar.setValue(i)

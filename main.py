@@ -106,7 +106,7 @@ class HomeWindow(QMainWindow):
     def collect_subscribers(self):
         browser = self.my_bot.get_browser()
         my_session = Session(browser=browser)
-        generation_status, message = my_session.generate_subscribers()
+        generation_status, message = my_session.generate_subscribers(size=0.5)
         if generation_status:
             self.label.setStyleSheet("color: green;")
             message = "Сбор завершен успешно"
@@ -213,10 +213,13 @@ class HomeWindow(QMainWindow):
         th.start()
 
     def process(self, counter):
+        self.progressBar.setEnabled(True)
         while True:
             self.progressBar.setValue(counter.value)
             if counter.value == 100:
+                print("100!")
                 break
+        self.progressBar.setEnabled(False)
 
 
 class Counter:

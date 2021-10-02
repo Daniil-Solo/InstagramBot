@@ -9,10 +9,10 @@ class Master(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
 
-    def get_clients(self):
+    def get_clients(self, size=1):
         try:
             self.get_n_subscribers()
-            self.scroll_down(self.n_subscribers)
+            self.scroll_down(int(self.n_subscribers*size))
             subscriber_names = self.find_subscribers_names()
             return subscriber_names, True, ""
         except Exception as ex:

@@ -14,14 +14,14 @@ class Session:
         self.unliked_users = None
         self.liked_users = None
 
-    def generate_subscribers(self):
+    def generate_subscribers(self, size=1):
         try:
             master_name, master_status, message = self.get_master()
             if not master_status:
                 return False, message
 
             master = Master(master_name, self._browser)
-            all_parsed_clients, potential_clients_status, message = master.get_clients()
+            all_parsed_clients, potential_clients_status, message = master.get_clients(size)
             if not all_parsed_clients:
                 return False, message
             self.users = all_parsed_clients
@@ -73,16 +73,15 @@ class Session:
                         client.get_post(mode="actual")
                         client.like_posts(self._parameters)
                         self.liked_users.append(client_name)
-                        time.sleep(self._parameters['timeout'])
                         count += 1
-                        counter.set(int(100*count/n_clients))
+                        counter.set(int(100 * count / n_clients))
                         if count == n_clients:
-                            counter.set(100)
                             full = True
+                        time.sleep(self._parameters['timeout'])
             except Exception:
                 pass
             time.sleep(5)
-        self.save_unliked_users()
+        self.save_unliked_users2()
         self.save_liked_users()
         return True, "Лайки были успешно проставлены"
 
@@ -125,6 +124,13 @@ class Session:
                 unliked_clients_dict[user] = 1
             with open('Source/unliked_users.json', "w") as write_file:
                 json.dump(unliked_clients_dict, write_file)
+
+    def save_unliked_users2(self):
+        unliked_clients_dict = dict()
+        for user in self.unliked_users:
+            unliked_clients_dict[user] = 1
+        with open('Source/unliked_users.json', "w") as write_file:
+            json.dump(unliked_clients_dict, write_file)
 
     def save_liked_users(self):
         liked_clients_dict = dict()

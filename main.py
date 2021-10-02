@@ -130,6 +130,7 @@ class HomeWindow(QMainWindow):
     def handle_close(self):
         self.my_bot.close_browser()
         self.close()
+        self.quit()
 
     def handle_authorizate(self):
         th = Thread(target=self.authorizate)
@@ -164,6 +165,10 @@ class HomeWindow(QMainWindow):
         self.label.setText(text + message)
 
     def handle_start_like(self):
+        th = Thread(target=self.start_like)
+        th.start()
+
+    def start_like(self):
         for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(False)

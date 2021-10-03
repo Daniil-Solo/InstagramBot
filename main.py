@@ -106,7 +106,7 @@ class HomeWindow(QMainWindow):
     def collect_subscribers(self):
         browser = self.my_bot.get_browser()
         my_session = Session(browser=browser)
-        generation_status, message = my_session.generate_subscribers(size=0.5)
+        generation_status, message = my_session.generate_subscribers(size=0.9)
         if generation_status:
             self.label.setStyleSheet("color: green;")
             message = "Сбор завершен успешно"
@@ -117,7 +117,8 @@ class HomeWindow(QMainWindow):
 
         with open('Source/unliked_users.json', 'r') as read_file:
             current_users = json.load(read_file)
-
+        if my_session.users is None:
+            my_session.users = []
         collect_users = set(current_users.keys()) | set(my_session.users)
 
         user_dict = dict()
@@ -165,8 +166,8 @@ class HomeWindow(QMainWindow):
         self.label.setText(text + message)
 
     def handle_start_like(self):
-        th = Thread(target=self.start_like)
-        th.start()
+        th1 = Thread(target=self.start_like)
+        th1.start()
 
     def start_like(self):
         for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
@@ -194,10 +195,8 @@ class HomeWindow(QMainWindow):
             with open('Source/unliked_users.json', 'r') as read_file:
                 collected_users = json.load(read_file)
 
-            counter = Counter()
-            self.start_progressing(counter)
             my_session.users = list(collected_users.keys())
-            liking_status, message = my_session.like_collected_users(counter)
+            liking_status, message = my_session.like_collected_users()
             if liking_status:
                 self.label.setStyleSheet("color: green;")
             else:
@@ -207,27 +206,7 @@ class HomeWindow(QMainWindow):
         for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(True)
-
-    def start_progressing(self, counter):
-        th = Thread(target=self.process, args=(counter,))
-        th.start()
-
-    def process(self, counter):
-        self.progressBar.setEnabled(True)
-        while True:
-            self.progressBar.setValue(counter.value)
-            if counter.value == 100:
-                print("100!")
-                break
-        self.progressBar.setEnabled(False)
-
-
-class Counter:
-    def __init__(self):
-        self.value = 0
-
-    def set(self, number):
-        self.value = number
+        print("stop session")
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ class Session:
         self.save_liked_users()
         return True, ""
 
-    def like_collected_users(self, counter):
+    def like_collected_users(self):
         count = 0
         full = False
         n_clients = self._parameters["n_potential_clients"]
@@ -74,7 +74,7 @@ class Session:
                         client.like_posts(self._parameters)
                         self.liked_users.append(client_name)
                         count += 1
-                        counter.set(int(100 * count / n_clients))
+                        print(str(int(100 * count / n_clients)) + "%")
                         if count == n_clients:
                             full = True
                         time.sleep(self._parameters['timeout'])
@@ -126,6 +126,7 @@ class Session:
                 json.dump(unliked_clients_dict, write_file)
 
     def save_unliked_users2(self):
+        print("unliked")
         unliked_clients_dict = dict()
         for user in self.unliked_users:
             unliked_clients_dict[user] = 1
@@ -133,6 +134,7 @@ class Session:
             json.dump(unliked_clients_dict, write_file)
 
     def save_liked_users(self):
+        print("liked")
         liked_clients_dict = dict()
         try:
             with open('Source/liked_users.json', "r") as read_file:

@@ -56,8 +56,9 @@ class Session:
         self.save_liked_users()
         return True, ""
 
-    def like_collected_users(self):
+    def like_collected_users(self, counter):
         count = 0
+        counter.set(count)
         full = False
         n_clients = self._parameters["n_potential_clients"]
         self.unliked_users = []
@@ -74,7 +75,7 @@ class Session:
                         client.like_posts(self._parameters)
                         self.liked_users.append(client_name)
                         count += 1
-                        print(str(int(100 * count / n_clients)) + "%")
+                        counter.set(100 * count / n_clients)
                         if count == n_clients:
                             full = True
                         time.sleep(self._parameters['timeout'])

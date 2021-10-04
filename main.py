@@ -8,6 +8,7 @@ from threading import Thread
 
 from Authorizator import Authorizator
 from Session import Session
+from ProgressBar import *
 
 
 class HomeWindow(QMainWindow):
@@ -17,10 +18,21 @@ class HomeWindow(QMainWindow):
         self.my_bot = Authorizator()
         self.parameters = None
         self.mode = 0
+        self.counter = Counter()
+        self.counter.set(0)
+        self.start_progress_thread()
         self.start_load()
         self.all_connection()
         self.autofill()
         self.show_parameters()
+
+    def start_progress_thread(self):
+        thread = ThreadClass(self)
+        thread.start()
+        thread.PROGRESS.connect(self.updateProgressBar)
+
+    def updateProgressBar(self, val):
+        self.progressBar.setValue(int(val))
 
     def start_load(self):
         for element in [self.collect_subscribers_button, self.start_button, self.progressBar]:
@@ -196,7 +208,7 @@ class HomeWindow(QMainWindow):
                 collected_users = json.load(read_file)
 
             my_session.users = list(collected_users.keys())
-            liking_status, message = my_session.like_collected_users()
+            liking_status, message = my_session.like_collected_users(self.counter)
             if liking_status:
                 self.label.setStyleSheet("color: green;")
             else:
@@ -206,6 +218,7 @@ class HomeWindow(QMainWindow):
         for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(True)
+        self.label.setText("")
         print("stop session")
 
 

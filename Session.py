@@ -11,8 +11,8 @@ class Session:
         self._parameters = parameters
         self._browser = browser
         self.users = []
-        self.unliked_users = None
-        self.liked_users = None
+        self.unliked_users = []
+        self.liked_users = []
 
     def generate_subscribers(self, size=1):
         try:
@@ -61,8 +61,6 @@ class Session:
         counter.set(count)
         full = False
         n_clients = self._parameters["n_people"]
-        self.unliked_users = []
-        self.liked_users = []
         for client_name in self.users:
             if full:
                 self.unliked_users.append(client_name)
@@ -82,7 +80,7 @@ class Session:
             except Exception:
                 pass
             time.sleep(5)
-        self.save_unliked_users2()
+        self.save_collected_users()
         self.save_liked_users()
         return True, "Лайки были успешно проставлены"
 
@@ -113,37 +111,40 @@ class Session:
                 f.write(item)
         return master_name, True, ""
 
+    def save_collected_users(self):
+        file_name = self._parameters['file_name']
+        with open(file_name, 'w') as write_file:
+            for user in self.unliked_users:
+                write_file.write(user + '\n')
+
     def save_unliked_users(self):
-        unliked_clients_dict = dict()
+        unliked_clients_set = set()
         try:
-            with open('Source/unliked_users.json', "r") as read_file:
-                unliked_clients_dict = json.load(read_file)
+            with open('Source/unliked_users.txt', "r") as read_file:
+                unliked_clients_set = read_file.readlines()
+                unliked_clients_set = [user.strip() for user in unliked_clients_set if user.strip() != '']
+                unliked_clients_set = set(unliked_clients_set)
         except FileNotFoundError:
             pass
         finally:
             for user in self.unliked_users:
-                unliked_clients_dict[user] = 1
-            with open('Source/unliked_users.json', "w") as write_file:
-                json.dump(unliked_clients_dict, write_file)
-
-    def save_unliked_users2(self):
-        print("unliked")
-        unliked_clients_dict = dict()
-        for user in self.unliked_users:
-            unliked_clients_dict[user] = 1
-        with open('Source/unliked_users.json', "w") as write_file:
-            json.dump(unliked_clients_dict, write_file)
+                unliked_clients_set.add(user)
+            with open('Source/unliked_users.txt', 'w') as write_file:
+                for user in unliked_clients_set:
+                    write_file.write(user + '\n')
 
     def save_liked_users(self):
-        print("liked")
-        liked_clients_dict = dict()
+        liked_clients_set = set()
         try:
-            with open('Source/liked_users.json', "r") as read_file:
-                liked_clients_dict = json.load(read_file)
+            with open('Source/liked_users.txt', "r") as read_file:
+                liked_clients_set = read_file.readlines()
+                liked_clients_set = [user.strip() for user in liked_clients_set if user.strip() != '']
+                liked_clients_set = set(liked_clients_set)
         except FileNotFoundError:
             pass
         finally:
             for user in self.liked_users:
-                liked_clients_dict[user] = 1
-            with open('Source/liked_users.json', "w") as write_file:
-                json.dump(liked_clients_dict, write_file)
+                liked_clients_set.add(user)
+            with open('Source/liked_users.txt', 'w') as write_file:
+                for user in liked_clients_set:
+                    write_file.write(user + '\n')

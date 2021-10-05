@@ -14,9 +14,9 @@ class Subscriber(User):
 
     def is_unique(self):
         try:
-            with open('Source/liked_users.json', "r") as read_file:
-                liked_clients_dict = json.load(read_file)
-            if self._name in liked_clients_dict:
+            with open('Source/liked_users.txt', "r") as read_file:
+                liked_clients_set = set(read_file.readlines())
+            if self._name in liked_clients_set:
                 return False
             else:
                 return True
@@ -76,16 +76,8 @@ class Subscriber(User):
     def like_this_post(self, post_url):
         self._browser.get(post_url)
         time.sleep(2)
-        xpaths = [
-            "/html/body/div[1]/section/main/div/div[1]/article/div/div[3]/div/div/section[1]/span[1]/button",
-            "/html/body/div[6]/div[2]/div/article/div/div[2]/div/div[2]/section[1]/span[1]/button",
-            "/html/body/div[1]/section/main/div/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button"
-
-        ]
-        for xpath in xpaths:
-            try:
-                self._browser.find_element_by_xpath(xpath).click()
-                print("Ok")
-            except NoSuchElementException:
-                print("Error")
-        time.sleep(2)
+        like_btn = "/html/body/div[1]/section/main/div/div[1]/article/div/div[2]/div/div[2]/section[1]/span[1]/button"
+        try:
+            self._browser.find_element_by_xpath(like_btn).click()
+        except NoSuchElementException:
+            pass

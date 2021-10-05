@@ -136,8 +136,12 @@ class HomeWindow(QMainWindow):
 
         elif self.parameters_manager.check_mode(2):
             file_name = self.parameters_manager.parameters.get('file_name')
-            with open(file_name, 'r') as read_file:
-                collected_users = list(set(read_file.readlines()))
+            try:
+                with open(file_name, 'r') as read_file:
+                    collected_users = list(set(read_file.readlines()))
+                    collected_users = [user.strip() for user in collected_users if user.strip() != '']
+            except FileNotFoundError:
+                self.show_info(False, "Ошибка: файл " + file_name + " не найден!")
 
             my_session.users = collected_users
             liking_status, message = my_session.like_collected_users(self.counter)

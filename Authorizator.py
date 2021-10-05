@@ -15,7 +15,7 @@ class Authorizator:
     def authorizate(self, login, password):
 
         if login == '' or password == '':
-            return False, "Одно из полей не заполнено"
+            return False, "Ошибка: Одно из полей не заполнено"
         else:
             self._login, self._password = login, password
         try:
@@ -23,7 +23,7 @@ class Authorizator:
                 self._browser = webdriver.Chrome(ChromeDriverManager().install())
             self._browser.get(url='https://www.instagram.com/')
         except WebDriverException:
-            return False, "Отсутствует подключение к интернету"
+            return False, "Ошибка: Отсутствует подключение к интернету"
 
         time.sleep(3)
         self.fill_login_and_password_and_press_enter()
@@ -33,7 +33,7 @@ class Authorizator:
             self._browser.find_element_by_class_name('eiCW-')
             self.close_browser()
             self._browser = None
-            return False, "Неправильный логин или пароль"
+            return False, "Ошибка: Неправильный логин или пароль"
         except NoSuchElementException:
             self.save_authorization_data()
             return True, "Вход выполнен успешно"

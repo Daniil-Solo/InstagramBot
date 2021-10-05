@@ -10,7 +10,7 @@ class Session:
     def __init__(self, parameters=None, browser=None):
         self._parameters = parameters
         self._browser = browser
-        self.users = None
+        self.users = []
         self.unliked_users = None
         self.liked_users = None
 
@@ -25,9 +25,9 @@ class Session:
             if not all_parsed_clients:
                 return False, message
             self.users = all_parsed_clients
-            return True, ""
+            return True, "Сбор завершен успешно"
         except Exception as ex:
-            return False, str(ex)
+            return False, "Ошибка: " + str(ex)
 
     def like_generated_users(self):
         count = 0
@@ -46,7 +46,7 @@ class Session:
                             self.liked_users.append(client_name)
                             time.sleep(self._parameters['timeout'])
                             count += 1
-                            if count == self._parameters["n_potential_clients"]:
+                            if count == self._parameters["n_people"]:
                                 full = True
                     else:
                         self.unliked_users.append(client_name)
@@ -60,7 +60,7 @@ class Session:
         count = 0
         counter.set(count)
         full = False
-        n_clients = self._parameters["n_potential_clients"]
+        n_clients = self._parameters["n_people"]
         self.unliked_users = []
         self.liked_users = []
         for client_name in self.users:

@@ -9,6 +9,7 @@ from threading import Thread
 from Authorizator import Authorizator
 from Session import Session
 from ProgressBar import *
+from ParametersManager import ParametersManager
 
 
 class HomeWindow(QMainWindow):
@@ -16,17 +17,16 @@ class HomeWindow(QMainWindow):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
-        self.parameters = None
-        self.mode = 0
+        self.parameters_manager = ParametersManager(init_mode=0)
         self.counter = Counter()
-        self.counter.set(0)
         self.start_progress_thread()
         self.start_load()
         self.all_connection()
         self.autofill()
-        self.show_parameters()
 
+# ------------Progress bar-------------
     def start_progress_thread(self):
+        self.counter.set(0)
         thread = ThreadClass(self)
         thread.start()
         thread.PROGRESS.connect(self.updateProgressBar)
@@ -34,23 +34,11 @@ class HomeWindow(QMainWindow):
     def updateProgressBar(self, val):
         self.progressBar.setValue(int(val))
 
+# -----------Start-----------------
     def start_load(self):
-        for element in [self.collect_subscribers_button, self.start_button, self.progressBar]:
+        for element in [self.update_parameters_button, self.start_button, self.progressBar, self.change_mode_button]:
             element.setEnabled(False)
-
-        try:
-            with open('Source/parameters.json', 'r') as read_file:
-                self.parameters = json.load(read_file)
-        except FileNotFoundError:
-            self.parameters = {
-                "n_potential_clients": 60,
-                "n_likes": 1,
-                "timeout": 60,
-                "like_mode": 0,
-                "popularity": [100, 500]
-            }
-            with open('Source/parameters.json', 'w') as write_file:
-                json.dump(self.parameters, write_file)
+        self.parameters_textbox.setPlainText("Войдите в аккаунт")
 
     def autofill(self):
         try:
@@ -64,81 +52,28 @@ class HomeWindow(QMainWindow):
             self.login.setText("")
             self.password.setText("")
 
-    def show_parameters(self):
-        text = "Параметры отсутствуют"
-        try:
-            with open('Source/parameters_view.txt', 'r', encoding='UTF-8') as read_file:
-                text_lines = read_file.readlines()
-            text = text_lines[0]
-            for param, line in zip(self.parameters, text_lines[1:]):
-                text += line.strip() + " " + str(self.parameters[param]) + '\n'
-        except FileNotFoundError:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Error")
-            msg.setText("Отсутствует файл parameters_view.txt")
-            msg.exec_()
-        self.parameters_textbox.setPlainText(text)
-
-    def show_parameters_2(self):
-        text = "Параметры отсутствуют"
-        try:
-            with open('Source/parameters2_view.txt', 'r', encoding='UTF-8') as read_file:
-                text_lines = read_file.readlines()
-            text = text_lines[0]
-            for param, line in zip(self.parameters, text_lines[1:]):
-                text += line.strip() + " " + str(self.parameters[param]) + '\n'
-        except FileNotFoundError:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Error")
-            msg.setText("Отсутствует файл parameters2_view.txt")
-            msg.exec_()
-        self.parameters_textbox.setPlainText(text)
+    def show_info(self, status, message):
+        if status:
+            self.label.setStyleSheet("color: green;")
+        else:
+            self.label.setStyleSheet("color: red;")
+        self.label.setText(message)
 
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
-        self.start_button.clicked.connect(self.handle_start_like)
+        self.start_button.clicked.connect(self.handle_start)
         self.close_button.clicked.connect(self.handle_close)
-        self.collect_subscribers_button.clicked.connect(self.handle_collect_subscribers)
+        self.update_parameters_button.clicked.connect(self.handle_update_parameters)
         self.change_mode_button.clicked.connect(self.handle_change_mode)
 
+# ----------Handlers--------------
     def handle_change_mode(self):
-        if self.mode == 0:
-            self.mode = 1
-            self.show_parameters_2()
-        else:
-            self.mode = 0
-            self.show_parameters()
+        self.parameters_manager.next_mode()
+        self.parameters_textbox.setPlainText(self.parameters_manager.get_text_parameters())
 
-    def handle_collect_subscribers(self):
-        th = Thread(target=self.collect_subscribers)
-        th.start()
-
-    def collect_subscribers(self):
-        browser = self.my_bot.get_browser()
-        my_session = Session(browser=browser)
-        generation_status, message = my_session.generate_subscribers(size=0.9)
-        if generation_status:
-            self.label.setStyleSheet("color: green;")
-            message = "Сбор завершен успешно"
-        else:
-            self.label.setStyleSheet("color: red;")
-            message = "Ошибка: " + message
-        self.label.setText(message)
-
-        with open('Source/unliked_users.json', 'r') as read_file:
-            current_users = json.load(read_file)
-        if my_session.users is None:
-            my_session.users = []
-        collect_users = set(current_users.keys()) | set(my_session.users)
-
-        user_dict = dict()
-        for user in collect_users:
-            user_dict[user] = 1
-
-        with open('Source/unliked_users.json', 'w') as write_file:
-            json.dump(user_dict, write_file)
+    def handle_update_parameters(self):
+        text = self.parameters_manager.get_text_parameters()
+        self.parameters_textbox.setPlainText(text)
 
     def handle_close(self):
         self.my_bot.close_browser()
@@ -149,7 +84,11 @@ class HomeWindow(QMainWindow):
         th = Thread(target=self.authorizate)
         th.start()
 
-    # обработчики
+    def handle_start(self):
+        th1 = Thread(target=self.start_work)
+        th1.start()
+
+# --------Main functions---------
     def authorizate(self):
         self.label.setStyleSheet("color: black;")
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
@@ -159,67 +98,54 @@ class HomeWindow(QMainWindow):
         login = self.login.text()
         password = self.password.text()
         authorization_status, message = self.my_bot.authorizate(login, password)
+        self.show_info(authorization_status, message)
 
-        text = ""
-
-        if authorization_status:
-            for element in [self.parameters_textbox, self.collect_subscribers_button, self.start_button,
-                            self.progressBar]:
-                element.setEnabled(True)
-            self.label.setStyleSheet("color: green;")
-        else:
-            for element in [self.parameters_textbox, self.collect_subscribers_button, self.start_button,
-                            self.progressBar]:
-                element.setEnabled(False)
-            self.label.setStyleSheet("color: red;")
+        for element in [self.parameters_textbox, self.update_parameters_button, self.start_button,
+                        self.progressBar,  self.change_mode_button]:
+            element.setEnabled(authorization_status)
 
         for element in [self.login, self.password, self.authorize_button]:
             element.setEnabled(True)
-        self.label.setText(text + message)
 
-    def handle_start_like(self):
-        th1 = Thread(target=self.start_like)
-        th1.start()
+        if authorization_status:
+            self.handle_update_parameters()
 
-    def start_like(self):
-        for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
+    def start_work(self):
+        for element in [self.update_parameters_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(False)
+
         browser = self.my_bot.get_browser()
-        my_session = Session(self.parameters, browser)
-        if self.mode == 0:
-            generation_status, message = my_session.generate_subscribers()
-            if not generation_status:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Warning)
-                msg.setWindowTitle("Error")
-                msg.setText(message)
-                msg.exec_()
-            else:
-                liking_status, message = my_session.like_generated_users()
-                if not liking_status:
-                    msg = QMessageBox()
-                    msg.setIcon(QMessageBox.Warning)
-                    msg.setWindowTitle("Error")
-                    msg.setText(message)
-                    msg.exec_()
-        else:
-            with open('Source/unliked_users.json', 'r') as read_file:
-                collected_users = json.load(read_file)
+        my_session = Session(self.parameters_manager.parameters, browser)
 
-            my_session.users = list(collected_users.keys())
+        if self.parameters_manager.check_mode(0):
+            status, message = my_session.generate_subscribers()
+            if status:
+                status, message = my_session.like_generated_users()
+            self.show_info(status, message)
+
+        elif self.parameters_manager.check_mode(1):
+            generation_status, message = my_session.generate_subscribers(
+                size=self.parameters_manager.parameters.get('percent_people'))
+            self.show_info(generation_status, message)
+
+            file_name = self.parameters_manager.parameters.get('file_name')
+            with open(file_name, 'a') as append_file:
+                for user in my_session.users:
+                    append_file.write(user + '\n')
+
+        elif self.parameters_manager.check_mode(2):
+            file_name = self.parameters_manager.parameters.get('file_name')
+            with open(file_name, 'r') as read_file:
+                collected_users = list(set(read_file.readlines()))
+
+            my_session.users = collected_users
             liking_status, message = my_session.like_collected_users(self.counter)
-            if liking_status:
-                self.label.setStyleSheet("color: green;")
-            else:
-                self.label.setStyleSheet("color: red;")
-            self.label.setText(message)
+            self.show_info(liking_status, message)
 
-        for element in [self.collect_subscribers_button, self.start_button, self.authorize_button,
+        for element in [self.update_parameters_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(True)
-        self.label.setText("")
-        print("stop session")
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ class HomeWindow(QMainWindow):
         self.all_connection()
         self.autofill()
 
-# ------------Progress bar-------------
+    # ------------Progress bar-------------
     def start_progress_thread(self):
         self.counter.set(0)
         thread = ThreadClass(self)
@@ -34,7 +34,7 @@ class HomeWindow(QMainWindow):
     def updateProgressBar(self, val):
         self.progressBar.setValue(int(val))
 
-# -----------Start-----------------
+    # -----------Start-----------------
     def start_load(self):
         for element in [self.update_parameters_button, self.start_button, self.progressBar, self.change_mode_button]:
             element.setEnabled(False)
@@ -66,7 +66,7 @@ class HomeWindow(QMainWindow):
         self.update_parameters_button.clicked.connect(self.handle_update_parameters)
         self.change_mode_button.clicked.connect(self.handle_change_mode)
 
-# ----------Handlers--------------
+    # ----------Handlers--------------
     def handle_change_mode(self):
         self.parameters_manager.next_mode()
         self.parameters_textbox.setPlainText(self.parameters_manager.get_text_parameters())
@@ -88,7 +88,7 @@ class HomeWindow(QMainWindow):
         th1 = Thread(target=self.start_work)
         th1.start()
 
-# --------Main functions---------
+    # --------Main functions---------
     def authorizate(self):
         self.label.setStyleSheet("color: black;")
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
@@ -101,7 +101,7 @@ class HomeWindow(QMainWindow):
         self.show_info(authorization_status, message)
 
         for element in [self.parameters_textbox, self.update_parameters_button, self.start_button,
-                        self.progressBar,  self.change_mode_button]:
+                        self.progressBar, self.change_mode_button]:
             element.setEnabled(authorization_status)
 
         for element in [self.login, self.password, self.authorize_button]:
@@ -128,33 +128,22 @@ class HomeWindow(QMainWindow):
             generation_status, message = my_session.generate_subscribers(
                 size=self.parameters_manager.parameters.get('percent_people'))
             self.show_info(generation_status, message)
-
-            file_name = self.parameters_manager.parameters.get('file_name')
-            with open(file_name, 'a') as append_file:
-                for user in my_session.users:
-                    append_file.write(user + '\n')
+            my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
 
         elif self.parameters_manager.check_mode(2):
-            file_name = self.parameters_manager.parameters.get('file_name')
-            try:
-                with open(file_name, 'r') as read_file:
-                    collected_users = list(set(read_file.readlines()))
-                    collected_users = [user.strip() for user in collected_users if user.strip() != '']
-            except FileNotFoundError:
-                self.show_info(False, "Ошибка: файл " + file_name + " не найден!")
-
-            my_session.users = collected_users
-            liking_status, message = my_session.like_collected_users(self.counter)
-            self.show_info(liking_status, message)
+            collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
+            if not collected_users:
+                self.show_info(False, "Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
+                               " не найден!")
+            else:
+                my_session.set_users(collected_users)
+                liking_status, message = my_session.like_collected_users(self.counter)
+                self.show_info(liking_status, message)
 
         elif self.parameters_manager.check_mode(3):
             status, message = my_session.collect_active_users()
             self.show_info(status, message)
-
-            file_name = self.parameters_manager.parameters.get('file_name')
-            with open(file_name, 'a') as append_file:
-                for user in my_session.users:
-                    append_file.write(user + '\n')
+            my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
 
         for element in [self.update_parameters_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:

@@ -1,8 +1,7 @@
-import json
-import random
 import time
 
 from Master import Master
+from ProgressBar import Counter
 from Subscriber import Subscriber
 from User import User
 
@@ -11,9 +10,13 @@ class Session:
     def __init__(self, parameters=None, browser=None):
         self._parameters = parameters
         self._browser = browser
-        self.users = []
-        self.unliked_users = []
-        self.liked_users = []
+        self._users = []
+
+    def set_users(self, users):
+        self._users = users
+
+    def get_users(self):
+        return self._users
 
     def collect_active_users(self):
         return False, "This function is not available"
@@ -28,17 +31,18 @@ class Session:
             all_parsed_clients, potential_clients_status, message = master.get_clients(size)
             if not all_parsed_clients:
                 return False, message
-            self.users = all_parsed_clients
+            self._users = all_parsed_clients
             return True, "Сбор завершен успешно"
         except Exception as ex:
             return False, "Ошибка: " + str(ex)
 
     def like_generated_users(self):
+        unliked_users = []
+        liked_users = []
         count = 0
         full = False
-        self.unliked_users = []
-        self.liked_users = []
-        for client_name in self.users:
+
+        for client_name in self._users:
             time.sleep(5)
             try:
                 client = Subscriber(client_name, self._browser)
@@ -47,27 +51,29 @@ class Session:
                         if client.is_unique() and client.satisfies_parameters(self._parameters):
                             client.get_post(mode="actual")
                             client.like_posts(self._parameters)
-                            self.liked_users.append(client_name)
+                            liked_users.append(client_name)
                             time.sleep(self._parameters['timeout'])
                             count += 1
                             if count == self._parameters["n_people"]:
                                 full = True
                     else:
-                        self.unliked_users.append(client_name)
+                        unliked_users.append(client_name)
             except Exception:
                 pass
-        self.save_unliked_users()
-        self.save_liked_users()
+        self.save_users(unliked_users, "Source/unliked_users.txt")
+        self.save_users(liked_users, "Source/liked_users.txt")
         return True, ""
 
-    def like_collected_users(self, counter):
+    def like_collected_users(self, counter: Counter) -> (bool, str):
+        liked_users = []
+        unliked_users = []
         count = 0
         counter.set(count)
         full = False
         n_clients = self._parameters["n_people"]
-        for client_name in self.users:
+        for client_name in self._users:
             if full:
-                self.unliked_users.append(client_name)
+                unliked_users.append(client_name)
                 continue
             try:
                 client = Subscriber(client_name, self._browser)
@@ -75,7 +81,7 @@ class Session:
                     if client.is_unique() and client.satisfies_parameters(self._parameters):
                         client.get_post(mode="actual")
                         client.like_posts(self._parameters)
-                        self.liked_users.append(client_name)
+                        liked_users.append(client_name)
                         count += 1
                         counter.set(100 * count / n_clients)
                         if count == n_clients:
@@ -84,71 +90,44 @@ class Session:
             except Exception:
                 pass
             time.sleep(5)
-        self.save_collected_users()
-        self.save_liked_users()
+        self.save_users(unliked_users, self._parameters['file_name'])
+        self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 
-    def get_master(self):
-        try:
-            with open("source/masters.txt", "r") as f:
-                masters = []
-                for line in f:
-                    if line != '':
-                        masters.append(line)
-        except FileNotFoundError:
-            return None, False, "Отсутствует файл master.txt"
-        if not masters:
-            return None, False, "Файл master.txt пуст"
-        stop = False
-        master_name = ""
+    def get_master(self) -> (str, bool, str):
+        master_file_name = "Source/masters.txt"
 
-        while not stop:
-            if not masters:
-                return None, False, "Нет подходящего мастера в файле master.txt"
+        masters = self.read_users_from_file(master_file_name)
+        if not masters:
+            return "", False, "Файл master.txt пуст или отсутствует"
+
+        while True:
             master_name = masters.pop(0)
             master = User(master_name, self._browser)
             if master.is_correct():
-                stop = True
+                break
+            if not masters:
+                return "", False, "Нет подходящего мастера в файле masters.txt"
 
-        with open("source/masters.txt", "w") as f:
-            for item in masters:
-                f.write(item)
-        return master_name.strip(), True, ""
+        self.write_users_to_file(masters, master_file_name)
+        return master_name, True, "Мастер был успешно найден"
 
-    def save_collected_users(self):
-        file_name = self._parameters['file_name']
-        with open(file_name, 'w') as write_file:
-            for user in self.unliked_users:
+    def save_users(self, new_users: list, file_name: str) -> None:
+        old_users = self.read_users_from_file(file_name)
+        full_user_set = set(old_users) | set(new_users)
+        self.write_users_to_file(full_user_set, file_name)
+
+    @staticmethod
+    def read_users_from_file(file_name: str) -> list:
+        try:
+            with open(file_name, "r") as read_file:
+                user_names = read_file.readlines()
+            return [user_name.strip() for user_name in user_names if user_name.strip()]
+        except FileNotFoundError:
+            return []
+
+    @staticmethod
+    def write_users_to_file(users: list or set, file_name: str) -> None:
+        with open(file_name, "w") as write_file:
+            for user in users:
                 write_file.write(user + '\n')
-
-    def save_unliked_users(self):
-        unliked_clients_set = set()
-        try:
-            with open('Source/unliked_users.txt', "r") as read_file:
-                unliked_clients_set = read_file.readlines()
-                unliked_clients_set = [user.strip() for user in unliked_clients_set if user.strip() != '']
-                unliked_clients_set = set(unliked_clients_set)
-        except FileNotFoundError:
-            pass
-        finally:
-            for user in self.unliked_users:
-                unliked_clients_set.add(user)
-            with open('Source/unliked_users.txt', 'w') as write_file:
-                for user in unliked_clients_set:
-                    write_file.write(user + '\n')
-
-    def save_liked_users(self):
-        liked_clients_set = set()
-        try:
-            with open('Source/liked_users.txt', "r") as read_file:
-                liked_clients_set = read_file.readlines()
-                liked_clients_set = [user.strip() for user in liked_clients_set if user.strip() != '']
-                liked_clients_set = set(liked_clients_set)
-        except FileNotFoundError:
-            pass
-        finally:
-            for user in self.liked_users:
-                liked_clients_set.add(user)
-            with open('Source/liked_users.txt', 'w') as write_file:
-                for user in liked_clients_set:
-                    write_file.write(user + '\n')

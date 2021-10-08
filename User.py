@@ -1,5 +1,7 @@
 import time
 
+from selenium.common.exceptions import NoSuchElementException
+
 
 class User:
     def __init__(self, name, browser):
@@ -8,6 +10,36 @@ class User:
         self.n_subscribers = None
         self.n_posts = None
         self.open_user_page()
+
+    def get_description(self) -> str:
+        self.open_user_page()
+        time.sleep(2)
+        description_block = self._browser.find_element_by_class_name("-vDIg")
+        header = self._get_header(description_block)
+        text = self._get_text(description_block)
+        return header + text
+
+    @staticmethod
+    def _get_header(description_block) -> str:
+        try:
+            header = description_block.find_element_by_tag_name('h1').text
+        except NoSuchElementException:
+            header = ''
+        return header
+
+    @staticmethod
+    def _get_text(description_block) -> str:
+        text = ' '
+        try:
+            items = description_block.find_elements_by_tag_name('span')
+            for item in items:
+                if "Подписан" not in item.text:
+                    text += " " + item.text
+                else:
+                    break
+        except NoSuchElementException:
+            pass
+        return text
 
     def is_correct(self):
         return self._is_page_exist() and self._is_opened()

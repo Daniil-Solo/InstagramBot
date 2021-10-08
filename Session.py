@@ -4,6 +4,7 @@ from Master import Master
 from ProgressBar import Counter
 from Subscriber import Subscriber
 from User import User
+from saving_descriprion import save_description
 
 
 class Session:
@@ -81,6 +82,8 @@ class Session:
                     if client.is_unique() and client.satisfies_parameters(self._parameters):
                         client.get_post(mode="actual")
                         client.like_posts(self._parameters)
+                        description = client.get_description()
+                        save_description(description)
                         liked_users.append(client_name)
                         count += 1
                         counter.set(100 * count / n_clients)

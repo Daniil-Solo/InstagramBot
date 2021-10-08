@@ -1,4 +1,5 @@
 import json
+import random
 import time
 
 from Master import Master
@@ -13,6 +14,9 @@ class Session:
         self.users = []
         self.unliked_users = []
         self.liked_users = []
+
+    def collect_active_users(self):
+        return False, "This function is not available"
 
     def generate_subscribers(self, size=1):
         try:
@@ -109,7 +113,7 @@ class Session:
         with open("source/masters.txt", "w") as f:
             for item in masters:
                 f.write(item)
-        return master_name, True, ""
+        return master_name.strip(), True, ""
 
     def save_collected_users(self):
         file_name = self._parameters['file_name']

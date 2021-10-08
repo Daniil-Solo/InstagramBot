@@ -147,6 +147,15 @@ class HomeWindow(QMainWindow):
             liking_status, message = my_session.like_collected_users(self.counter)
             self.show_info(liking_status, message)
 
+        elif self.parameters_manager.check_mode(3):
+            status, message = my_session.collect_active_users()
+            self.show_info(status, message)
+
+            file_name = self.parameters_manager.parameters.get('file_name')
+            with open(file_name, 'a') as append_file:
+                for user in my_session.users:
+                    append_file.write(user + '\n')
+
         for element in [self.update_parameters_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:
             element.setEnabled(True)

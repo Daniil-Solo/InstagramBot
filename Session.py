@@ -78,12 +78,13 @@ class Session:
                 continue
             try:
                 client = Subscriber(client_name, self._browser)
+                time.sleep(2)
+                description = client.get_description()
+                save_description(description)
                 if client.is_correct():
                     if client.is_unique() and client.satisfies_parameters(self._parameters):
                         client.get_post(mode="actual")
                         client.like_posts(self._parameters)
-                        description = client.get_description()
-                        save_description(description)
                         liked_users.append(client_name)
                         count += 1
                         counter.set(100 * count / n_clients)
@@ -93,7 +94,7 @@ class Session:
             except Exception:
                 pass
             time.sleep(5)
-        self.save_users(unliked_users, self._parameters['file_name'])
+        self.write_users_to_file(unliked_users, self._parameters['file_name'])
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 

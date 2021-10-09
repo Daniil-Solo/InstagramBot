@@ -8,14 +8,14 @@ from User import User
 
 
 class Subscriber(User):
-    def __init__(self, name, browser):
+    def __init__(self, name, browser=None):
         super().__init__(name, browser)
         self.posts = None
 
     def is_unique(self):
         try:
             with open('Source/liked_users.txt', "r") as read_file:
-                liked_clients_set = set(read_file.readlines())
+                liked_clients_set = set([user.strip() for user in read_file.readlines()])
             if self._name in liked_clients_set:
                 return False
             else:

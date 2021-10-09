@@ -4,7 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class User:
-    def __init__(self, name, browser):
+    def __init__(self, name, browser=None):
         self._name = name
         self._browser = browser
         self.n_subscribers = None
@@ -12,7 +12,6 @@ class User:
         self.open_user_page()
 
     def get_description(self) -> str:
-        self.open_user_page()
         time.sleep(2)
         description_block = self._browser.find_element_by_class_name("-vDIg")
         header = self._get_header(description_block)
@@ -45,9 +44,10 @@ class User:
         return self._is_page_exist() and self._is_opened()
 
     def open_user_page(self, time_out=1):
-        new_url = f"https://www.instagram.com/{self._name}/"
-        self._browser.get(new_url)
-        time.sleep(time_out)
+        if self._browser:
+            new_url = f"https://www.instagram.com/{self._name}/"
+            self._browser.get(new_url)
+            time.sleep(time_out)
 
     def get_n_post(self):
         if self.n_posts is None:

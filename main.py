@@ -134,7 +134,7 @@ class HomeWindow(QMainWindow):
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
             if not collected_users:
                 self.show_info(False, "Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
-                               " не найден!")
+                               " не найден или пуст!")
             else:
                 my_session.set_users(collected_users)
                 liking_status, message = my_session.like_collected_users(self.counter)

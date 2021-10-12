@@ -6,6 +6,10 @@ from Subscriber import Subscriber
 from User import User
 from saving_descriprion import save_description
 
+import logging
+logging.basicConfig(filename='log.log', level=logging.INFO,
+                    format='%(asctime)s * %(levelname)s * %(message)s')
+
 
 class Session:
     def __init__(self, parameters=None, browser=None):
@@ -29,6 +33,8 @@ class Session:
                 return False, message
 
             master = Master(master_name, self._browser)
+            logging.info(f"Master is {master_name}")
+            logging.info(f"Goal is {int(master.get_n_subscribers()*size)} subscribers")
             all_parsed_clients, potential_clients_status, message = master.get_clients(size)
             if not all_parsed_clients:
                 return False, message

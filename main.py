@@ -11,6 +11,13 @@ from Session import Session
 from ProgressBar import *
 from ParametersManager import ParametersManager
 
+import logging
+logging.basicConfig(filename='Source/log.log', level=logging.INFO,
+                    format='%(asctime)s * %(levelname)s * %(message)s')
+wdm_loger = logging.getLogger('WDM')
+wdm_loger.disabled = True
+
+
 
 class HomeWindow(QMainWindow):
     def __init__(self):
@@ -23,6 +30,7 @@ class HomeWindow(QMainWindow):
         self.start_load()
         self.all_connection()
         self.autofill()
+        logging.info("Launching the application")
 
     # ------------Progress bar-------------
     def start_progress_thread(self):
@@ -76,6 +84,7 @@ class HomeWindow(QMainWindow):
         self.parameters_textbox.setPlainText(text)
 
     def handle_close(self):
+        logging.info("Closing the application")
         self.my_bot.close_browser()
         self.close()
         self.quit()
@@ -90,6 +99,7 @@ class HomeWindow(QMainWindow):
 
     # --------Main functions---------
     def authorizate(self):
+        logging.info("Starting authorization")
         self.label.setStyleSheet("color: black;")
         self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
         self.label.show()
@@ -109,6 +119,9 @@ class HomeWindow(QMainWindow):
 
         if authorization_status:
             self.handle_update_parameters()
+            logging.info("Authorization is OK")
+        else:
+            logging.warning("Authorization is failed")
 
     def start_work(self):
         for element in [self.update_parameters_button, self.start_button, self.authorize_button,
@@ -125,20 +138,34 @@ class HomeWindow(QMainWindow):
             self.show_info(status, message)
 
         elif self.parameters_manager.check_mode(1):
+            logging.info("Start collecting subscribers")
             generation_status, message = my_session.generate_subscribers(
                 size=self.parameters_manager.parameters.get('percent_people'))
             self.show_info(generation_status, message)
-            my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
+            logging.info(f"Real result is {len(my_session.get_users())} subscribers")
+            if generation_status:
+                my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
+                logging.info(
+                    f"The collected users were saved to file{self.parameters_manager.parameters.get('file_name')}")
+                logging.info("Collecting subscribers is OK")
+            else:
+                logging.warning("Collecting subscribers is failed")
 
         elif self.parameters_manager.check_mode(2):
+            logging.info("Start liking collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
             if not collected_users:
                 self.show_info(False, "Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
                                " не найден или пуст!")
+                logging.warning("Liking collected subscribers is failed")
             else:
                 my_session.set_users(collected_users)
                 liking_status, message = my_session.like_collected_users(self.counter)
                 self.show_info(liking_status, message)
+                if liking_status:
+                    logging.info("Liking collected subscribers is OK")
+                else:
+                    logging.warning("Liking collected subscribers is failed")
 
         elif self.parameters_manager.check_mode(3):
             status, message = my_session.collect_active_users()

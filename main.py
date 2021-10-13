@@ -12,11 +12,10 @@ from ProgressBar import *
 from ParametersManager import ParametersManager
 
 import logging
-logging.basicConfig(filename='Source/log.log', level=logging.INFO,
+logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(asctime)s * %(levelname)s * %(message)s')
 wdm_loger = logging.getLogger('WDM')
 wdm_loger.disabled = True
-
 
 
 class HomeWindow(QMainWindow):

@@ -7,6 +7,7 @@ from User import User
 from saving_descriprion import save_description
 
 import logging
+
 logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(asctime)s * %(levelname)s * %(message)s')
 
@@ -34,7 +35,7 @@ class Session:
 
             master = Master(master_name, self._browser)
             logging.info(f"Master is {master_name}")
-            logging.info(f"Goal is {int(master.get_n_subscribers()*size)} subscribers")
+            logging.info(f"Goal is {int(master.get_n_subscribers() * size)} subscribers")
             all_parsed_clients, potential_clients_status, message = master.get_clients(size)
             if not all_parsed_clients:
                 return False, message
@@ -73,34 +74,32 @@ class Session:
 
     def like_collected_users(self, counter: Counter) -> (bool, str):
         liked_users = []
-        unliked_users = []
         count = 0
         counter.set(count)
-        full = False
         n_clients = self._parameters["n_people"]
-        for client_name in self._users:
-            if full:
-                unliked_users.append(client_name)
-                continue
+        while self._users:
+            client_name = self._users.pop()
             try:
                 client = Subscriber(client_name, self._browser)
                 time.sleep(2)
                 description = client.get_description()
                 save_description(description)
-                if client.is_correct():
-                    if client.is_unique() and client.satisfies_parameters(self._parameters):
-                        client.get_post(mode="actual")
-                        client.like_posts(self._parameters)
-                        liked_users.append(client_name)
-                        count += 1
-                        counter.set(100 * count / n_clients)
-                        if count == n_clients:
-                            full = True
-                        time.sleep(self._parameters['timeout'])
+                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters):
+                    client.get_post(mode="actual")
+                    client.like_posts(self._parameters)
+                    liked_users.append(client_name)
+                    count += 1
+                    counter.set(100 * count / n_clients)
+                    logging.info(f"Like {client_name} - {str(count)}/{str(n_clients)}")
+                    if count == n_clients:
+                        break
+                    time.sleep(self._parameters['timeout'])
+                else:
+                    time.sleep(5)
             except Exception:
-                pass
-            time.sleep(5)
-        self.write_users_to_file(unliked_users, self._parameters['file_name'])
+                continue
+
+        self.write_users_to_file(self._users, self._parameters['file_name'])
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 

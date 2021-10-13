@@ -103,6 +103,33 @@ class Session:
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 
+    def filter_subscribers(self, counter: Counter) -> (bool, str):
+        for_liking_users = []
+        count = 0
+        counter.set(count)
+        n_clients = self._parameters["n_people"]
+        while self._users:
+            client_name = self._users.pop()
+            try:
+                client = Subscriber(client_name, self._browser)
+                time.sleep(2)
+                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters):
+                    for_liking_users.append(client_name)
+                    count += 1
+                    counter.set(100 * count / n_clients)
+                    logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
+                    if count == n_clients:
+                        break
+                    time.sleep(self._parameters['timeout'])
+                else:
+                    time.sleep(2)
+            except Exception:
+                continue
+
+        self.write_users_to_file(self._users, self._parameters['input_file_name'])
+        self.save_users(for_liking_users, self._parameters['output_file_name'])
+        return True, "Лайки были успешно проставлены"
+
     def get_master(self) -> (str, bool, str):
         master_file_name = "Source/masters.txt"
 

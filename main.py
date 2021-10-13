@@ -29,6 +29,7 @@ class HomeWindow(QMainWindow):
         self.start_load()
         self.all_connection()
         self.autofill()
+        logging.info("")
         logging.info("Launching the application")
 
     # ------------Progress bar-------------
@@ -170,6 +171,17 @@ class HomeWindow(QMainWindow):
             status, message = my_session.collect_active_users()
             self.show_info(status, message)
             my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
+
+        elif self.parameters_manager.check_mode(4):
+            logging.info("Start filter for collected subscribers")
+            collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
+            my_session.set_users(collected_users)
+            status, message = my_session.filter_subscribers(self.counter)
+            self.show_info(status, message)
+            if status:
+                logging.info("Filter collected subscribers is OK")
+            else:
+                logging.warning("Filter collected subscribers is failed")
 
         for element in [self.update_parameters_button, self.start_button, self.authorize_button,
                         self.login, self.password, self.change_mode_button]:

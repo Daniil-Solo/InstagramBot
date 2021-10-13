@@ -139,13 +139,13 @@ class HomeWindow(QMainWindow):
         elif self.parameters_manager.check_mode(1):
             logging.info("Start collecting subscribers")
             generation_status, message = my_session.generate_subscribers(
-                size=self.parameters_manager.parameters.get('percent_people'))
+                size=self.parameters_manager.parameters.get('percent_people'), counter=self.counter)
             self.show_info(generation_status, message)
             logging.info(f"Real result is {len(my_session.get_users())} subscribers")
             if generation_status:
                 my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
                 logging.info(
-                    f"The collected users were saved to file{self.parameters_manager.parameters.get('file_name')}")
+                    f"The collected users were saved to {self.parameters_manager.parameters.get('file_name')}")
                 logging.info("Collecting subscribers is OK")
             else:
                 logging.warning("Collecting subscribers is failed")

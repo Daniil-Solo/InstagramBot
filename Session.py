@@ -27,7 +27,7 @@ class Session:
     def collect_active_users(self):
         return False, "This function is not available"
 
-    def generate_subscribers(self, size=1):
+    def generate_subscribers(self, size=1, counter=None):
         try:
             master_name, master_status, message = self.get_master()
             if not master_status:
@@ -36,7 +36,7 @@ class Session:
             master = Master(master_name, self._browser)
             logging.info(f"Master is {master_name}")
             logging.info(f"Goal is {int(master.get_n_subscribers() * size)} subscribers")
-            all_parsed_clients, potential_clients_status, message = master.get_clients(size)
+            all_parsed_clients, potential_clients_status, message = master.get_clients(size=size, counter=counter)
             if not all_parsed_clients:
                 return False, message
             self._users = all_parsed_clients

@@ -4,6 +4,7 @@ from Master import Master
 from ProgressBar import Counter
 from Subscriber import Subscriber
 from User import User
+from description_analysis import is_our_client
 from saving_descriprion import save_description
 
 import logging
@@ -114,6 +115,13 @@ class Session:
                 client = Subscriber(client_name, self._browser)
                 time.sleep(2)
                 if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters):
+                    description = client.get_description()
+                    print(description)
+                    if not is_our_client(description):
+                        logging.warning(f"{client_name} has an inappropriate description")
+                        print("failed")
+                        continue
+                    print("ok")
                     for_liking_users.append(client_name)
                     count += 1
                     counter.set(100 * count / n_clients)
@@ -128,7 +136,7 @@ class Session:
 
         self.write_users_to_file(self._users, self._parameters['input_file_name'])
         self.save_users(for_liking_users, self._parameters['output_file_name'])
-        return True, "Лайки были успешно проставлены"
+        return True, "Пользователи были успешно отфильтрованы"
 
     def get_master(self) -> (str, bool, str):
         master_file_name = "Source/masters.txt"

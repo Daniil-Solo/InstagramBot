@@ -48,8 +48,15 @@ class Authorizator:
             "login": self._login,
             "password": self._password
         }
-        with open('Source/authorization.json', "w") as write_file:
-            json.dump(data, write_file)
+        try:
+            with open('Source/authorization.json', 'r') as read_file:
+                auth_parameters = json.load(read_file)
+            auth_parameters.append(data)
+            with open('Source/authorization.json', "w") as write_file:
+                json.dump(auth_parameters, write_file)
+        except FileNotFoundError:
+            with open('Source/authorization.json', "w") as write_file:
+                json.dump([data], write_file)
 
     def fill_login_and_password_and_press_enter(self, time_out=1):
         username_input = self._browser.find_element_by_name('username')

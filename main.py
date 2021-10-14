@@ -24,6 +24,7 @@ class HomeWindow(QMainWindow):
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
         self.parameters_manager = ParametersManager(init_mode=0)
+        self.account_counter = 0
         self.counter = Counter()
         self.start_progress_thread()
         self.start_load()
@@ -52,8 +53,24 @@ class HomeWindow(QMainWindow):
         try:
             with open('Source/authorization.json', 'r') as read_file:
                 auth_parameters = json.load(read_file)
-            self.login.setText(auth_parameters['login'])
-            self.password.setText(auth_parameters['password'])
+            self.login.setText(auth_parameters[0]['login'])
+            self.password.setText(auth_parameters[0]['password'])
+        except FileNotFoundError:
+            return
+        except TypeError:
+            self.login.setText("")
+            self.password.setText("")
+
+    def change_filling_data(self):
+        try:
+            with open('Source/authorization.json', 'r') as read_file:
+                auth_parameters = json.load(read_file)
+            n_accounts = len(auth_parameters)
+            self.account_counter += 1
+            if self.account_counter >= n_accounts:
+                self.account_counter = 0
+            self.login.setText(auth_parameters[self.account_counter]['login'])
+            self.password.setText(auth_parameters[self.account_counter]['password'])
         except FileNotFoundError:
             return
         except TypeError:
@@ -73,6 +90,7 @@ class HomeWindow(QMainWindow):
         self.close_button.clicked.connect(self.handle_close)
         self.update_parameters_button.clicked.connect(self.handle_update_parameters)
         self.change_mode_button.clicked.connect(self.handle_change_mode)
+        self.fix_position_butttons .clicked.connect(self.change_filling_data)
 
     # ----------Handlers--------------
     def handle_change_mode(self):

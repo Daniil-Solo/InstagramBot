@@ -156,6 +156,8 @@ class HomeWindow(QMainWindow):
             self.show_info(status, message)
 
         elif self.parameters_manager.check_mode(1):
+            self.label.setStyleSheet("color: black;")
+            self.label.setText('Выполняется сбор подписчиков, пожалуйста подождите')
             logging.info("Start collecting subscribers")
             generation_status, message = my_session.generate_subscribers(
                 size=self.parameters_manager.parameters.get('percent_people'), counter=self.counter)
@@ -170,6 +172,8 @@ class HomeWindow(QMainWindow):
                 logging.warning("Collecting subscribers is failed")
 
         elif self.parameters_manager.check_mode(2):
+            self.label.setStyleSheet("color: black;")
+            self.label.setText('Выполняется лайкинг собранных подписчиков, пожалуйста подождите')
             logging.info("Start liking collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
             if not collected_users:
@@ -191,6 +195,8 @@ class HomeWindow(QMainWindow):
             my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
 
         elif self.parameters_manager.check_mode(4):
+            self.label.setStyleSheet("color: black;")
+            self.label.setText('Выполняется фильтрация подписчиков, пожалуйста подождите')
             logging.info("Start filter for collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
             my_session.set_users(collected_users)

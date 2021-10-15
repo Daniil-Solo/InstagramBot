@@ -1,10 +1,18 @@
 import re
 
 human_words = []
-company_words = ['товар', 'услуга']
+stop_words = ['товар', 'услуга', 'торговля', 'покупки', 'магазин', 'бизнес', 'мебель',
+              'одежда', 'бренд', 'фриланс', 'доставка', 'самовывоз', 'директ', 'лайк',
+              'лайки', 'сотрудничество', 'косметика', 'консультация', 'бизнеса', 'запись',
+              'звоните', 'красота', 'etsy', 'наличии', 'наличие', 'бизнесу', 'ремонт',
+              'сотрудничества', 'шугаринг', 'маникюр', 'отель', 'москва', 'макияж',
+              'брови']
 
 hash_human_words = set([hash(word) for word in human_words])
-hash_company_words = set([hash(word) for word in company_words])
+hash_stop_words = set([hash(word) for word in stop_words])
+
+
+# иностранные слова
 
 
 def is_our_client(text: str) -> bool:
@@ -15,8 +23,8 @@ def is_our_client(text: str) -> bool:
 
 
 def is_company(hash_tokens):
-    global hash_company_words
-    general_set = hash_tokens & hash_company_words
+    global hash_stop_words
+    general_set = hash_tokens & hash_stop_words
     return bool(general_set)
 
 
@@ -31,13 +39,11 @@ def is_human(hash_tokens):
 
 
 def is_russian(english_words, russian_words) -> bool:
-    if len(english_words) > 0:
-        if len(russian_words) == 0 or len(russian_words) <= 2:
-            return False
-        else:
-            return True
-    elif len(russian_words) == 0:
+    if len(english_words) > 3 and len(russian_words) == 0:
         return False
-    else:
+    elif len(english_words) > 0 and len(russian_words) > 3:
         return True
-
+    elif len(english_words) == 0 and len(russian_words) > 0:
+        return True
+    else:
+        return False

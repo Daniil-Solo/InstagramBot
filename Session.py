@@ -114,7 +114,8 @@ class Session:
             try:
                 client = Subscriber(client_name, self._browser)
                 time.sleep(2)
-                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters):
+                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters) and \
+                        (client.get_n_post() > 5):
                     description = client.get_description()
                     print(description)
                     if not is_our_client(description):

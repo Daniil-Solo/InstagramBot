@@ -100,6 +100,10 @@ class User:
         wrong_xpath = '/html/body/div[1]/section/main/div/div[2]/article/div[1]/div/div[2]/h1'
         return not self.xpath_exist(wrong_xpath)
 
+    def is_error_wait_some_minutes(self):
+        wrong_xpath = '/html/body/div/div[1]/div/div'
+        return self.xpath_exist(wrong_xpath)
+
     def xpath_exist(self, xpath):
         try:
             self._browser.find_element_by_xpath(xpath)

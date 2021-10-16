@@ -85,7 +85,7 @@ class Session:
                 time.sleep(2)
                 description = client.get_description()
                 save_description(description)
-                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters):
+                if client.is_correct():
                     client.get_post(mode="actual")
                     client.like_posts(self._parameters)
                     liked_users.append(client_name)
@@ -111,12 +111,32 @@ class Session:
         n_clients = self._parameters["n_people"]
         while self._users:
             client_name = self._users.pop()
+            print("Клиент: " + client_name)
             try:
                 client = Subscriber(client_name, self._browser)
+                if client.is_error_wait_some_minutes():
+                    print("Ошибка! Требуется подождать")
+                    logging.warning(f"TimeError. Finish result: {count}/{n_clients}")
+                    break
                 time.sleep(2)
-                if client.is_correct() and client.is_unique() and client.satisfies_parameters(self._parameters) and \
-                        (client.get_n_post() > 5):
-                    description = client.get_description()
+                if not client.is_correct():
+                    print("Ошибка! Страница закрыта или не существет")
+                    time.sleep(self._parameters['timeout'] // 2)
+                    continue
+                elif not client.is_unique():
+                    print("Ошибка! Его уже лайкали")
+                    time.sleep(self._parameters['timeout'] // 2)
+                    continue
+                elif not client.satisfies_parameters(self._parameters):
+                    print("Ошибка! Не имеет постов или не подходит по числу подписчиков")
+                    time.sleep(self._parameters['timeout'] // 2)
+                    continue
+                else:
+                    try:
+                        description = client.get_description()
+                    except Exception as ex:
+                        print("Ошибка!" + str(ex))
+                        continue
                     print(description)
                     if not is_our_client(description):
                         logging.warning(f"{client_name} has an inappropriate description")
@@ -130,9 +150,8 @@ class Session:
                     if count == n_clients:
                         break
                     time.sleep(self._parameters['timeout'])
-                else:
-                    time.sleep(2)
-            except Exception:
+            except Exception as ex:
+                print(f"Ошибка! {ex}")
                 continue
 
         self.write_users_to_file(self._users, self._parameters['input_file_name'])

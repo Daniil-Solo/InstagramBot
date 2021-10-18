@@ -9,5 +9,6 @@ Source/collected_users.txt
 Source/liked_users.txt
 Source/unliked_users.txt
 Source/for_liking_users.txt
+Source/parsed_masters.txt
 test.ipynb
 log.log

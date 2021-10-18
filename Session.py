@@ -4,7 +4,7 @@ from Master import Master
 from ProgressBar import Counter
 from Subscriber import Subscriber
 from User import User
-from description_analysis import is_our_client
+from description_analysis import is_our_client, is_master
 from saving_descriprion import save_description
 
 import logging
@@ -40,6 +40,7 @@ class Session:
             all_parsed_clients, potential_clients_status, message = master.get_clients(size=size, counter=counter)
             if not all_parsed_clients:
                 return False, message
+            self.save_users([master_name], 'Source/parsed_masters.txt')
             self._users = all_parsed_clients
             return True, "Сбор завершен успешно"
         except Exception as ex:
@@ -107,18 +108,26 @@ class Session:
     def filter_subscribers(self, counter: Counter) -> (bool, str):
         for_liking_users = []
         count = 0
+        error_count = 0
         counter.set(count)
         n_clients = self._parameters["n_people"]
         while self._users:
+            print("\n")
             client_name = self._users.pop()
             print("Клиент: " + client_name)
             try:
                 client = Subscriber(client_name, self._browser)
+                if error_count > 3:
+                    self._users.append(client_name)
+                    print("Ошибка! Превышено число ошибочных попыток")
+                    logging.warning(f"CountError. Finish result: {count}/{n_clients}")
+                    break
                 if client.is_error_wait_some_minutes():
                     print("Ошибка! Требуется подождать")
                     logging.warning(f"TimeError. Finish result: {count}/{n_clients}")
                     break
                 time.sleep(2)
+                error_count = 0
                 if not client.is_correct():
                     print("Ошибка! Страница закрыта или не существет")
                     time.sleep(self._parameters['timeout'] // 2)
@@ -131,18 +140,30 @@ class Session:
                     print("Ошибка! Не имеет постов или не подходит по числу подписчиков")
                     time.sleep(self._parameters['timeout'] // 2)
                     continue
+                elif client.get_n_post() < 5:
+                    print("Ошибка! Меньше 5 постов")
+                    time.sleep(self._parameters['timeout'] // 2)
+                    continue
                 else:
                     try:
                         description = client.get_description()
                     except Exception as ex:
-                        print("Ошибка!" + str(ex))
+                        print("Ошибка с описанием!" + str(ex))
+                        time.sleep(100)
                         continue
                     print(description)
                     if not is_our_client(description):
                         logging.warning(f"{client_name} has an inappropriate description")
-                        print("failed")
+                        print("Не подходит!")
                         continue
-                    print("ok")
+                    if is_master(description):
+                        master = Master(client_name, self._browser)
+                        logging.warning(f"{client_name} has a master description")
+                        print("Это мастер!")
+                        if master.is_unique():
+                            self.save_users([client_name], 'Source/parsed_masters.txt')
+                        continue
+                    print("Подходит!")
                     for_liking_users.append(client_name)
                     count += 1
                     counter.set(100 * count / n_clients)
@@ -151,7 +172,9 @@ class Session:
                         break
                     time.sleep(self._parameters['timeout'])
             except Exception as ex:
-                print(f"Ошибка! {ex}")
+                error_count += 1
+                print(f"Глобальная ошибка! {ex}")
+                time.sleep(100)
                 continue
 
         self.write_users_to_file(self._users, self._parameters['input_file_name'])

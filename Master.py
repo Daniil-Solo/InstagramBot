@@ -11,7 +11,7 @@ class Master(User):
     def get_clients(self, size=1, counter=None):
         try:
             self.get_n_subscribers()
-            self.scroll_down(count_subscribers=int(self.n_subscribers*size), counter=counter)
+            self.scroll_down(count_subscribers=int(self.n_subscribers * size), counter=counter)
             subscriber_names = self.find_subscribers_names()
             return subscriber_names, True, ""
         except Exception as ex:
@@ -41,4 +41,15 @@ class Master(User):
             )
             time.sleep(random.randrange(4, 5))
             if counter:
-                counter.set(int(100*(i+1)/loop_count))
+                counter.set(int(100 * (i + 1) / loop_count))
+
+    def is_unique(self):
+        try:
+            with open('Source/parsed_masters.txt', "r") as read_file:
+                parsed_masters_set = set([master.strip() for master in read_file.readlines()])
+            if self._name in parsed_masters_set:
+                return False
+            else:
+                return True
+        except FileNotFoundError:
+            return True

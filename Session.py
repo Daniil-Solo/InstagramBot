@@ -152,16 +152,17 @@ class Session:
                         time.sleep(100)
                         continue
                     print(description)
-                    if not is_our_client(description):
-                        logging.warning(f"{client_name} has an inappropriate description")
-                        print("Не подходит!")
-                        continue
                     if is_master(description):
                         master = Master(client_name, self._browser)
                         logging.warning(f"{client_name} has a master description")
                         print("Это мастер!")
                         if master.is_unique():
                             self.save_users([client_name], 'Source/parsed_masters.txt')
+                            print("Добавляем в базу данных мастеров")
+                        continue
+                    if not is_our_client(description):
+                        logging.warning(f"{client_name} has an inappropriate description")
+                        print("Не подходит!")
                         continue
                     print("Подходит!")
                     for_liking_users.append(client_name)

@@ -9,10 +9,10 @@ from threading import Thread
 from Authorizator import Authorizator
 from Session import Session
 from interface_data import InterfaceDataManger, InterfaceDataMangerThread
-from update_label import *
 from ParametersManager import ParametersManager
 
 import logging
+
 logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(asctime)s * %(levelname)s * %(message)s')
 wdm_loger = logging.getLogger('WDM')
@@ -116,7 +116,7 @@ class HomeWindow(QMainWindow):
         self.close_button.clicked.connect(self.handle_close)
         self.update_parameters_button.clicked.connect(self.handle_update_parameters)
         self.change_mode_button.clicked.connect(self.handle_change_mode)
-        self.fix_position_butttons .clicked.connect(self.change_filling_data)
+        self.fix_position_butttons.clicked.connect(self.change_filling_data)
 
     # ----------Handlers--------------
     def handle_change_mode(self):
@@ -159,9 +159,7 @@ class HomeWindow(QMainWindow):
             logging.warning("Authorization is failed")
 
     def start_work(self):
-        for element in [self.update_parameters_button, self.start_button, self.authorize_button,
-                        self.login, self.password, self.change_mode_button]:
-            element.setEnabled(False)
+        self.idm.block_process_elements()
 
         browser = self.my_bot.get_browser()
         my_session = Session(self.parameters_manager.parameters, browser)
@@ -170,15 +168,14 @@ class HomeWindow(QMainWindow):
             status, message = my_session.generate_subscribers()
             if status:
                 status, message = my_session.like_generated_users()
-            self.show_info(status, message)
+            self.idm.set_message(message, status)
 
         elif self.parameters_manager.check_mode(1):
-            self.label.setStyleSheet("color: black;")
-            self.label.setText('Выполняется сбор подписчиков, пожалуйста подождите')
+            self.idm.set_message('Выполняется сбор подписчиков, пожалуйста подождите')
             logging.info("Start collecting subscribers")
             generation_status, message = my_session.generate_subscribers(
-                size=self.parameters_manager.parameters.get('percent_people'), counter=self.counter)
-            self.show_info(generation_status, message)
+                size=self.parameters_manager.parameters.get('percent_people'), counter=self.idm)
+            self.idm.set_message(message, generation_status)
             logging.info(f"Real result is {len(my_session.get_users())} subscribers")
             if generation_status:
                 my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
@@ -189,18 +186,17 @@ class HomeWindow(QMainWindow):
                 logging.warning("Collecting subscribers is failed")
 
         elif self.parameters_manager.check_mode(2):
-            self.label.setStyleSheet("color: black;")
-            self.label.setText('Выполняется лайкинг собранных подписчиков, пожалуйста подождите')
+            self.idm.set_message('Выполняется лайкинг собранных подписчиков, пожалуйста подождите')
             logging.info("Start liking collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
             if not collected_users:
-                self.show_info(False, "Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
-                               " не найден или пуст!")
+                self.idm.set_message("Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
+                                     " не найден или пуст!", False)
                 logging.warning("Liking collected subscribers is failed")
             else:
                 my_session.set_users(collected_users)
-                liking_status, message = my_session.like_collected_users(self.counter)
-                self.show_info(liking_status, message)
+                liking_status, message = my_session.like_collected_users(self.idm)
+                self.idm.set_message(message, liking_status)
                 if liking_status:
                     logging.info("Liking collected subscribers is OK")
                 else:
@@ -208,25 +204,22 @@ class HomeWindow(QMainWindow):
 
         elif self.parameters_manager.check_mode(3):
             status, message = my_session.collect_active_users()
-            self.show_info(status, message)
+            self.idm.set_message(message, status)
             my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
 
         elif self.parameters_manager.check_mode(4):
-            self.label.setStyleSheet("color: black;")
-            self.label.setText('Выполняется фильтрация подписчиков, пожалуйста подождите')
+            self.idm.set_message('Выполняется фильтрация подписчиков, пожалуйста подождите')
             logging.info("Start filter for collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
             my_session.set_users(collected_users)
-            status, message = my_session.filter_subscribers(self.counter)
-            self.show_info(status, message)
+            status, message = my_session.filter_subscribers(self.idm)
+            self.idm.set_message(message, status)
             if status:
                 logging.info("Filter collected subscribers is OK")
             else:
                 logging.warning("Filter collected subscribers is failed")
 
-        for element in [self.update_parameters_button, self.start_button, self.authorize_button,
-                        self.login, self.password, self.change_mode_button]:
-            element.setEnabled(True)
+        self.idm.deblock_elements()
 
 
 if __name__ == "__main__":

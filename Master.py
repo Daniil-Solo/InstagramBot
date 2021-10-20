@@ -34,14 +34,14 @@ class Master(User):
         time.sleep(2)
         followers_panel = self._browser.find_element_by_xpath('/html/body/div[6]/div/div/div[2]')
         if counter:
-            counter.set(0)
+            counter.set_progress(0)
         for i in range(loop_count):
             self._browser.execute_script(
                 "arguments[0].scrollTop = arguments[0].scrollHeight", followers_panel
             )
             time.sleep(random.randrange(4, 5))
             if counter:
-                counter.set(int(100 * (i + 1) / loop_count))
+                counter.set_progress(int(100 * (i + 1) / loop_count))
 
     def is_unique(self):
         try:

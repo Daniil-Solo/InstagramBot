@@ -1,7 +1,6 @@
 import time
 
 from Master import Master
-from ProgressBar import Counter
 from Subscriber import Subscriber
 from User import User
 from description_analysis import is_our_client, is_master
@@ -74,10 +73,10 @@ class Session:
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, ""
 
-    def like_collected_users(self, counter: Counter) -> (bool, str):
+    def like_collected_users(self, counter) -> (bool, str):
         liked_users = []
         count = 0
-        counter.set(count)
+        counter.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users:
             client_name = self._users.pop()
@@ -91,7 +90,7 @@ class Session:
                     client.like_posts(self._parameters)
                     liked_users.append(client_name)
                     count += 1
-                    counter.set(100 * count / n_clients)
+                    counter.set_progress(100 * count / n_clients)
                     logging.info(f"Like {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break
@@ -105,11 +104,11 @@ class Session:
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 
-    def filter_subscribers(self, counter: Counter) -> (bool, str):
+    def filter_subscribers(self, counter) -> (bool, str):
         for_liking_users = []
         count = 0
         error_count = 0
-        counter.set(count)
+        counter.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users:
             print("\n")
@@ -167,7 +166,7 @@ class Session:
                     print("Подходит!")
                     for_liking_users.append(client_name)
                     count += 1
-                    counter.set(100 * count / n_clients)
+                    counter.set_progress(100 * count / n_clients)
                     logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break

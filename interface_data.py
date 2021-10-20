@@ -55,7 +55,7 @@ class InterfaceDataManger:
         self.save_data()
 
     def save_data(self):
-        data = self.message + "#" + str(self.progress_value)
+        data = self.message + "#" + str(int(self.progress_value))
         for button in self.blocked_elements:
             data += "#" + button
         with open('Source/interface_data.txt', 'w') as write_file:

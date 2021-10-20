@@ -157,7 +157,7 @@ class Session:
                         logging.warning(f"{client_name} has a master description")
                         print("Это мастер!")
                         if master.is_unique():
-                            self.save_users([client_name], 'Source/parsed_masters.txt')
+                            self.save_users([client_name], 'Source/masters.txt')
                             print("Добавляем в базу данных мастеров")
                         continue
                     if not is_our_client(description):

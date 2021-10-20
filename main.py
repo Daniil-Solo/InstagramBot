@@ -8,7 +8,8 @@ from threading import Thread
 
 from Authorizator import Authorizator
 from Session import Session
-from ProgressBar import *
+from interface_data import InterfaceDataManger, InterfaceDataMangerThread
+from update_label import *
 from ParametersManager import ParametersManager
 
 import logging
@@ -23,31 +24,63 @@ class HomeWindow(QMainWindow):
         super(HomeWindow, self).__init__()
         loadUi("Interface/MainWindow.ui", self)
         self.my_bot = Authorizator()
-        self.parameters_manager = ParametersManager(init_mode=0)
+        self.parameters_manager = ParametersManager(init_mode=-1)
         self.account_counter = 0
-        self.counter = Counter()
-        self.start_progress_thread()
+        self.idm = InterfaceDataManger()
+        self.start_interface_data_updating_thread()
+        self.elements = dict()
         self.start_load()
         self.all_connection()
         self.autofill()
         logging.info("")
         logging.info("Launching the application")
 
-    # ------------Progress bar-------------
-    def start_progress_thread(self):
-        self.counter.set(0)
-        thread = ThreadClass(self)
+    # -----------Label, Buttons, ProgressBar--------
+    def start_interface_data_updating_thread(self):
+        self.idm.save_data()
+        thread = InterfaceDataMangerThread(self)
         thread.start()
-        thread.PROGRESS.connect(self.updateProgressBar)
+        thread.STATUS.connect(self.update_interface_data)
 
-    def updateProgressBar(self, val):
-        self.progressBar.setValue(int(val))
+    def update_interface_data(self, global_status):
+        data = global_status.split('#')
+        status = data.pop(0)
+        if status[0] == 's':
+            self.label.setStyleSheet("color: green;")
+        elif status[0] == 'e':
+            self.label.setStyleSheet("color: red;")
+        elif status[0] == 'i':
+            self.label.setStyleSheet("color: black;")
+        else:
+            return
+        self.label.setText(status[1:])
+
+        progress = int(data.pop(0))
+        self.progressBar.setValue(progress)
+
+        blocked_elements = data
+        self.set_elements(blocked_elements)
+
+    def set_elements(self, blocked_elements):
+        for element in self.elements:
+            self.elements[element].setEnabled(True)
+
+        for element in blocked_elements:
+            if element:
+                self.elements[element].setEnabled(False)
 
     # -----------Start-----------------
     def start_load(self):
-        for element in [self.update_parameters_button, self.start_button, self.progressBar, self.change_mode_button]:
-            element.setEnabled(False)
-        self.parameters_textbox.setPlainText("Войдите в аккаунт")
+        self.idm.block_process_elements()
+        self.parameters_textbox.setPlainText("Параметры недоступны")
+        # Authorization
+        self.elements['lgn'] = self.login
+        self.elements['psw'] = self.password
+        self.elements['aub'] = self.authorize_button
+        # Processing
+        self.elements['upb'] = self.update_parameters_button
+        self.elements['stb'] = self.start_button
+        self.elements['cmb'] = self.change_mode_button
 
     def autofill(self):
         try:
@@ -77,13 +110,6 @@ class HomeWindow(QMainWindow):
             self.login.setText("")
             self.password.setText("")
 
-    def show_info(self, status, message):
-        if status:
-            self.label.setStyleSheet("color: green;")
-        else:
-            self.label.setStyleSheet("color: red;")
-        self.label.setText(message)
-
     def all_connection(self):
         self.authorize_button.clicked.connect(self.handle_authorizate)
         self.start_button.clicked.connect(self.handle_start)
@@ -108,7 +134,9 @@ class HomeWindow(QMainWindow):
         self.quit()
 
     def handle_authorizate(self):
-        th = Thread(target=self.authorizate)
+        login = self.login.text()
+        password = self.password.text()
+        th = Thread(target=self.authorizate, args=(login, password))
         th.start()
 
     def handle_start(self):
@@ -116,29 +144,18 @@ class HomeWindow(QMainWindow):
         th1.start()
 
     # --------Main functions---------
-    def authorizate(self):
+    def authorizate(self, login, password):
         logging.info("Starting authorization")
-        self.label.setStyleSheet("color: black;")
-        self.label.setText('Выполняется вход в аккаунт, пожалуйста подождите')
-        self.label.show()
-        for element in [self.parameters_textbox, self.login, self.password, self.authorize_button]:
-            element.setEnabled(False)
-        login = self.login.text()
-        password = self.password.text()
+        self.idm.set_message('Выполняется вход в аккаунт, пожалуйста подождите')
+        self.idm.block_auth_elements()
         authorization_status, message = self.my_bot.authorizate(login, password)
-        self.show_info(authorization_status, message)
-
-        for element in [self.parameters_textbox, self.update_parameters_button, self.start_button,
-                        self.progressBar, self.change_mode_button]:
-            element.setEnabled(authorization_status)
-
-        for element in [self.login, self.password, self.authorize_button]:
-            element.setEnabled(True)
+        self.idm.set_message(message, authorization_status)
 
         if authorization_status:
-            self.handle_update_parameters()
+            self.idm.deblock_elements()
             logging.info("Authorization is OK")
         else:
+            self.idm.block_process_elements()
             logging.warning("Authorization is failed")
 
     def start_work(self):

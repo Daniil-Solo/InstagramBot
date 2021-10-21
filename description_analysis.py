@@ -9,13 +9,14 @@ stop_words = ['товар', 'услуга', 'торговля', 'покупки'
               'сотрудничества', 'шугаринг', 'маникюр', 'отель', 'москва', 'макияж',
               'брови', 'direct', 'топ', 'smm', 'таро', 'час', 'услуг', 'массаж', 'копирайтер',
               'режим', 'выходной', 'агенство', 'услуги', 'парикмахер', 'телефон', 'онлайн',
-              'бронирование', 'тур']
+              'бронирование', 'тур', 'скидки', 'акции', 'заказ', 'заказа', 'сеть', 'образование']
 master_words = ['эпоксидка', 'эпоксидной', 'смолы', 'эпоксидные', 'смолу', 'смола']
-
+man_names = ['владислав', 'александр', 'андрей', 'сергей', 'никита', 'олег', 'владимир', 'даниил']
 
 hash_human_words = set([hash(word) for word in human_words])
 hash_stop_words = set([hash(word) for word in stop_words])
 hash_master_words = set([hash(word) for word in master_words])
+hash_man_names = set([hash(name) for name in man_names])
 
 # иностранные слова
 
@@ -24,7 +25,7 @@ def is_our_client(text: str) -> bool:
     ews = re.findall("[A-Za-z]+", text)
     rws = re.findall("[ЁёА-Яа-я]+", text)
     hash_tokens = set([hash(word.lower()) for word in ews + rws])
-    return is_relevant_language(text) and is_human(hash_tokens) and not is_company(hash_tokens)
+    return is_relevant_language(text) and not is_company(hash_tokens) and not is_man(hash_tokens)
 
 
 def is_master(text):
@@ -32,6 +33,12 @@ def is_master(text):
     tokens = re.findall("[ЁёА-Яа-я]+", text)
     hash_tokens = set([hash(word.lower()) for word in tokens])
     general_set = hash_tokens & hash_master_words
+    return bool(general_set)
+
+
+def is_man(hash_tokens):
+    global hash_man_names
+    general_set = hash_tokens & hash_man_names
     return bool(general_set)
 
 
@@ -58,7 +65,7 @@ def is_relevant_language(text) -> bool:
         print("Описание не содержит букв")
         return False
     print("Предсказываемый язык описания: " + predict)
-    if predict in ['ru', 'uk', 'en', 'br', 'bg', 'mk', 'sw']:
+    if predict in ['ru', 'uk', 'en', 'br', 'bg', 'mk', 'sw', 'sv']:
         return True
     else:
         return False

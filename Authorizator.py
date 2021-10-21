@@ -51,7 +51,12 @@ class Authorizator:
         try:
             with open('Source/authorization.json', 'r') as read_file:
                 auth_parameters = json.load(read_file)
-            auth_parameters.append(data)
+            if data in auth_parameters:
+                return
+            elif data['login'] in [item['login'] for item in auth_parameters]:
+                auth_parameters['password'] = data['password']
+            else:
+                auth_parameters.append(data)
             with open('Source/authorization.json', "w") as write_file:
                 json.dump(auth_parameters, write_file)
         except FileNotFoundError:

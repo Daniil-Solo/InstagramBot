@@ -96,6 +96,7 @@ class Session:
                 else:
                     time.sleep(5)
             except Exception:
+                print(client_name)
                 continue
 
         self.write_users_to_file(self._users, self._parameters['file_name'])
@@ -111,6 +112,8 @@ class Session:
         closed_count = 0
         master_count = 0
         not_our_client_count = 0
+        not_in_range_count = 0
+        not_post_count = 0
         counter.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users and counter.not_stop():
@@ -140,8 +143,14 @@ class Session:
                     print("Ошибка! Его уже лайкали")
                     time.sleep(self._parameters['timeout'] // 2)
                     continue
-                elif not client.satisfies_parameters(self._parameters):
-                    print("Ошибка! Не имеет постов или не подходит по числу подписчиков")
+                elif not client.is_in_range_of_subscribers(self._parameters):
+                    print("Ошибка! Не подходит по числу подписчиков")
+                    not_in_range_count += 1
+                    time.sleep(self._parameters['timeout'] // 2)
+                    continue
+                elif not client.has_posts():
+                    print("Ошибка! Не имеет постов")
+                    not_post_count += 1
                     time.sleep(self._parameters['timeout'] // 2)
                     continue
                 elif client.get_n_post() < 5:
@@ -191,7 +200,7 @@ class Session:
                 time.sleep(100)
                 continue
 
-        save_statistics([all_count, count, closed_count, master_count, not_our_client_count])
+        save_statistics([all_count, count, closed_count, master_count, not_our_client_count, not_in_range_count, not_post_count])
         self.write_users_to_file(self._users, self._parameters['input_file_name'])
         self.save_users(for_liking_users, self._parameters['output_file_name'])
         return True, "Пользователи были успешно отфильтрованы"

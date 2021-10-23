@@ -66,7 +66,7 @@ def is_relevant_language(text) -> bool:
         print("Описание не содержит букв")
         return False
     print("Предсказываемый язык описания: " + predict)
-    if predict in ['ru', 'uk', 'br', 'bg', 'mk', 'sw', 'sv']:
+    if predict in ['ru', 'uk', 'br', 'bg', 'mk', 'sw', 'sv', 'sl']:
         return True
     else:
         return False

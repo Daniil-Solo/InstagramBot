@@ -23,10 +23,13 @@ class Subscriber(User):
         except FileNotFoundError:
             return True
 
-    def satisfies_parameters(self, parameters):
+    def is_in_range_of_subscribers(self, parameters):
         self.get_n_subscribers()
         lower_border, upper_border = parameters["popularity"]
-        return self._has_posts() and lower_border <= self.n_subscribers <= upper_border
+        return lower_border <= self.n_subscribers <= upper_border
+
+    def has_posts(self):
+        return self._has_posts()
 
     def get_post(self, mode="actual"):
         if self.posts is None:

@@ -242,10 +242,56 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="authorize_button">
-               <property name="text">
-                <string>Войти</string>
+              <widget class="QFrame" name="auth_buttons">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
                </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="spacing">
+                 <number>2</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="authorize_button">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Войти</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="next_user_button">
+                  <property name="text">
+                   <string>Следующий</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
              <item>
@@ -335,16 +381,35 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="update_parameters_button">
+              <widget class="QPushButton" name="stop_button">
                <property name="text">
-                <string>Обновить параметры</string>
+                <string>Остановить</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="start_button">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="text">
                 <string>Начать</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="update_parameters_button">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Обновить параметры</string>
                </property>
               </widget>
              </item>

@@ -71,16 +71,19 @@ class HomeWindow(QMainWindow):
 
     # -----------Start-----------------
     def start_load(self):
-        self.idm.block_process_elements()
+        self.idm.block_start_elements()
         self.parameters_textbox.setPlainText("Параметры недоступны")
         # Authorization
         self.elements['lgn'] = self.login
         self.elements['psw'] = self.password
         self.elements['aub'] = self.authorize_button
+        self.elements['nub'] = self.next_user_button
+        # Top buttons
+        self.elements['cmb'] = self.change_mode_button
         # Processing
         self.elements['upb'] = self.update_parameters_button
         self.elements['stb'] = self.start_button
-        self.elements['cmb'] = self.change_mode_button
+        self.elements['spb'] = self.stop_button
 
     def autofill(self):
         try:
@@ -116,7 +119,8 @@ class HomeWindow(QMainWindow):
         self.close_button.clicked.connect(self.handle_close)
         self.update_parameters_button.clicked.connect(self.handle_update_parameters)
         self.change_mode_button.clicked.connect(self.handle_change_mode)
-        self.fix_position_butttons.clicked.connect(self.change_filling_data)
+        self.next_user_button.clicked.connect(self.change_filling_data)
+        self.stop_button.clicked.connect(self.handle_stop)
 
     # ----------Handlers--------------
     def handle_change_mode(self):
@@ -142,6 +146,9 @@ class HomeWindow(QMainWindow):
     def handle_start(self):
         th1 = Thread(target=self.start_work)
         th1.start()
+
+    def handle_stop(self):
+        self.idm.stop_process()
 
     # --------Main functions---------
     def authorizate(self, login, password):
@@ -219,6 +226,7 @@ class HomeWindow(QMainWindow):
             else:
                 logging.warning("Filter collected subscribers is failed")
 
+        self.idm.restart_stop_status()
         self.idm.deblock_elements()
 
 

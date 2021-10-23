@@ -113,7 +113,7 @@ class Session:
         not_our_client_count = 0
         counter.set_progress(count)
         n_clients = self._parameters["n_people"]
-        while self._users:
+        while self._users and counter.not_stop():
             print("\n")
             client_name = self._users.pop()
             print("Клиент: " + client_name)

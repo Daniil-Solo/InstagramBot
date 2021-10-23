@@ -27,6 +27,7 @@ class InterfaceDataManger:
         self.message = "i"
         self.progress_value = 0
         self.blocked_elements = []
+        self.not_stop_status = True
 
     def set_message(self, message, type_message=None):
         if type_message is None:
@@ -42,8 +43,12 @@ class InterfaceDataManger:
         self.progress_value = value
         self.save_data()
 
+    def block_start_elements(self):
+        self.blocked_elements = ['upb', 'stb', 'cmb', 'spb']
+        self.save_data()
+
     def block_auth_elements(self):
-        self.blocked_elements = ['lgn', 'psw', 'aub', 'upb', 'stb', 'cmb']
+        self.blocked_elements = ['lgn', 'psw', 'aub', 'upb', 'stb', 'cmb', 'spb', 'nub']
         self.save_data()
 
     def block_process_elements(self):
@@ -51,7 +56,7 @@ class InterfaceDataManger:
         self.save_data()
 
     def deblock_elements(self):
-        self.blocked_elements = []
+        self.blocked_elements = ['spb']
         self.save_data()
 
     def save_data(self):
@@ -60,3 +65,12 @@ class InterfaceDataManger:
             data += "#" + button
         with open('Source/interface_data.txt', 'w') as write_file:
             write_file.write(data)
+
+    def not_stop(self):
+        return self.not_stop_status
+
+    def stop_process(self):
+        self.not_stop_status = False
+
+    def restart_stop_status(self):
+        self.not_stop_status = True

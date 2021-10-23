@@ -4,7 +4,7 @@ from Master import Master
 from Subscriber import Subscriber
 from User import User
 from description_analysis import is_our_client, is_master
-from saving_descriprion import save_description
+from saving_descriprion import save_statistics
 
 import logging
 
@@ -83,8 +83,6 @@ class Session:
             try:
                 client = Subscriber(client_name, self._browser)
                 time.sleep(2)
-                description = client.get_description()
-                save_description(description)
                 if client.is_correct():
                     client.get_post(mode="actual")
                     client.like_posts(self._parameters)
@@ -106,14 +104,20 @@ class Session:
 
     def filter_subscribers(self, counter) -> (bool, str):
         for_liking_users = []
-        count = 0
         error_count = 0
+
+        all_count = 0
+        count = 0
+        closed_count = 0
+        master_count = 0
+        not_our_client_count = 0
         counter.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users:
             print("\n")
             client_name = self._users.pop()
             print("Клиент: " + client_name)
+            all_count += 1
             try:
                 client = Subscriber(client_name, self._browser)
                 if error_count > 3:
@@ -129,6 +133,7 @@ class Session:
                 error_count = 0
                 if not client.is_correct():
                     print("Ошибка! Страница закрыта или не существет")
+                    closed_count += 1
                     time.sleep(self._parameters['timeout'] // 2)
                     continue
                 elif not client.is_unique():
@@ -158,9 +163,18 @@ class Session:
                         if master.is_unique():
                             self.save_users([client_name], 'Source/masters.txt')
                             print("Добавляем в базу данных мастеров")
+                            master_count += 1
+                            for_liking_users.append(client_name)
+                            count += 1
+                            counter.set_progress(100 * count / n_clients)
+                            logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
+                            if count == n_clients:
+                                break
+                            time.sleep(self._parameters['timeout'])
                         continue
                     if not is_our_client(description):
                         logging.warning(f"{client_name} has an inappropriate description")
+                        not_our_client_count += 1
                         print("Не подходит!")
                         continue
                     print("Подходит!")
@@ -177,6 +191,7 @@ class Session:
                 time.sleep(100)
                 continue
 
+        save_statistics([all_count, count, closed_count, master_count, not_our_client_count])
         self.write_users_to_file(self._users, self._parameters['input_file_name'])
         self.save_users(for_liking_users, self._parameters['output_file_name'])
         return True, "Пользователи были успешно отфильтрованы"

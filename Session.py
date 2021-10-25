@@ -45,33 +45,6 @@ class Session:
         except Exception as ex:
             return False, "Ошибка: " + str(ex)
 
-    def like_generated_users(self):
-        unliked_users = []
-        liked_users = []
-        count = 0
-        full = False
-
-        for client_name in self._users:
-            time.sleep(5)
-            try:
-                client = Subscriber(client_name, self._browser)
-                if client.is_correct():
-                    if not full:
-                        if client.is_unique() and client.satisfies_parameters(self._parameters):
-                            client.get_post(mode="actual")
-                            client.like_posts(self._parameters)
-                            liked_users.append(client_name)
-                            time.sleep(self._parameters['timeout'])
-                            count += 1
-                            if count == self._parameters["n_people"]:
-                                full = True
-                    else:
-                        unliked_users.append(client_name)
-            except Exception:
-                pass
-        self.save_users(unliked_users, "Source/unliked_users.txt")
-        self.save_users(liked_users, "Source/liked_users.txt")
-        return True, ""
 
     def like_collected_users(self, counter) -> (bool, str):
         liked_users = []

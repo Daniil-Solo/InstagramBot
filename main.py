@@ -172,12 +172,6 @@ class HomeWindow(QMainWindow):
         my_session = Session(self.parameters_manager.parameters, browser)
 
         if self.parameters_manager.check_mode(0):
-            status, message = my_session.generate_subscribers()
-            if status:
-                status, message = my_session.like_generated_users()
-            self.idm.set_message(message, status)
-
-        elif self.parameters_manager.check_mode(1):
             self.idm.set_message('Выполняется сбор подписчиков, пожалуйста подождите')
             logging.info("Start collecting subscribers")
             generation_status, message = my_session.generate_subscribers(
@@ -191,6 +185,18 @@ class HomeWindow(QMainWindow):
                 logging.info("Collecting subscribers is OK")
             else:
                 logging.warning("Collecting subscribers is failed")
+
+        elif self.parameters_manager.check_mode(1):
+            self.idm.set_message('Выполняется фильтрация подписчиков, пожалуйста подождите')
+            logging.info("Start filter for collected subscribers")
+            collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
+            my_session.set_users(collected_users)
+            status, message = my_session.filter_subscribers(self.idm)
+            self.idm.set_message(message, status)
+            if status:
+                logging.info("Filter collected subscribers is OK")
+            else:
+                logging.warning("Filter collected subscribers is failed")
 
         elif self.parameters_manager.check_mode(2):
             self.idm.set_message('Выполняется лайкинг собранных подписчиков, пожалуйста подождите')
@@ -208,23 +214,6 @@ class HomeWindow(QMainWindow):
                     logging.info("Liking collected subscribers is OK")
                 else:
                     logging.warning("Liking collected subscribers is failed")
-
-        elif self.parameters_manager.check_mode(3):
-            status, message = my_session.collect_active_users()
-            self.idm.set_message(message, status)
-            my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
-
-        elif self.parameters_manager.check_mode(4):
-            self.idm.set_message('Выполняется фильтрация подписчиков, пожалуйста подождите')
-            logging.info("Start filter for collected subscribers")
-            collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
-            my_session.set_users(collected_users)
-            status, message = my_session.filter_subscribers(self.idm)
-            self.idm.set_message(message, status)
-            if status:
-                logging.info("Filter collected subscribers is OK")
-            else:
-                logging.warning("Filter collected subscribers is failed")
 
         self.idm.restart_stop_status()
         self.idm.deblock_elements()

@@ -2,7 +2,7 @@ import json
 
 
 class ParametersManager:
-    n_modes = 5
+    n_modes = 3
 
     def __init__(self, init_mode):
         self.mode = init_mode
@@ -17,29 +17,19 @@ class ParametersManager:
     def get_text_parameters(self):
         self.parameters = dict()
         if self.mode == 0:
-            return self.collect_and_like_subscribers_text()
-        elif self.mode == 1:
             return self.collect_subscribers_text()
+        elif self.mode == 1:
+            return self.filter_subscribers_text()
         elif self.mode == 2:
             return self.like_collected_subscribers_text()
-        elif self.mode == 3:
-            return self.collect_post_liked_subscribers_text()
-        elif self.mode == 4:
-            return self.filter_subscribers_text()
         else:
             return "Данный метод отсутствует"
-
-    def collect_and_like_subscribers_text(self):
-        return self._get_text_with_mode('collect_and_like_subscribers')
 
     def collect_subscribers_text(self):
         return self._get_text_with_mode('collect_subscribers')
 
     def like_collected_subscribers_text(self):
         return self._get_text_with_mode('like_collected_subscribers')
-
-    def collect_post_liked_subscribers_text(self):
-        return self._get_text_with_mode('collect_post_liked_subscribers')
 
     def filter_subscribers_text(self):
         return self._get_text_with_mode('filter_subscribers')

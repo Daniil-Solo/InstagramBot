@@ -215,6 +215,7 @@ class HomeWindow(QMainWindow):
                 else:
                     logging.warning("Liking collected subscribers is failed")
 
+
         self.idm.restart_stop_status()
         self.idm.deblock_elements()
 

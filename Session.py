@@ -3,7 +3,7 @@ import time
 from Master import Master
 from Subscriber import Subscriber
 from User import User
-from description_analysis import is_our_client, is_master
+from description_analysis import is_our_client, is_master, is_specific_master
 from saving_descriprion import save_statistics
 
 import logging
@@ -143,9 +143,12 @@ class Session:
                         logging.warning(f"{client_name} has a master description")
                         print("Это мастер!")
                         if master.is_unique():
-                            self.save_users([client_name], 'Source/masters.txt')
-                            print("Добавляем в базу данных мастеров")
-                            master_count += 1
+                            if master.has_specific_name() or is_specific_master(description):
+                                self.save_users([client_name], 'Source/masters.txt')
+                                print("Добавляем в базу данных мастеров")
+                                master_count += 1
+                            else:
+                                print("Похоже, что он не занимается эпосикдными урашениями")
                             for_liking_users.append(client_name)
                             count += 1
                             counter.set_progress(100 * count / n_clients)

@@ -53,3 +53,10 @@ class Master(User):
                 return True
         except FileNotFoundError:
             return True
+
+    def has_specific_name(self):
+        specific_names = ['art', 'epoxy', 'flowers', 'ja', 'resinart', 'jewelry', 'resin', 'smola']
+        for specific_part in specific_names:
+            if specific_part in self._name:
+                return True
+        return False

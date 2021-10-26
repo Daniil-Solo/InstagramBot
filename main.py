@@ -169,13 +169,12 @@ class HomeWindow(QMainWindow):
         self.idm.block_process_elements()
 
         browser = self.my_bot.get_browser()
-        my_session = Session(self.parameters_manager.parameters, browser)
+        my_session = Session(self.parameters_manager.parameters, browser, self.idm)
 
         if self.parameters_manager.check_mode(0):
             self.idm.set_message('Выполняется сбор подписчиков, пожалуйста подождите')
             logging.info("Start collecting subscribers")
-            generation_status, message = my_session.generate_subscribers(
-                size=self.parameters_manager.parameters.get('percent_people'), counter=self.idm)
+            generation_status, message = my_session.generate_subscribers()
             self.idm.set_message(message, generation_status)
             logging.info(f"Real result is {len(my_session.get_users())} subscribers")
             if generation_status:
@@ -191,7 +190,7 @@ class HomeWindow(QMainWindow):
             logging.info("Start filter for collected subscribers")
             collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('input_file_name'))
             my_session.set_users(collected_users)
-            status, message = my_session.filter_subscribers(self.idm)
+            status, message = my_session.filter_subscribers()
             self.idm.set_message(message, status)
             if status:
                 logging.info("Filter collected subscribers is OK")
@@ -208,13 +207,12 @@ class HomeWindow(QMainWindow):
                 logging.warning("Liking collected subscribers is failed")
             else:
                 my_session.set_users(collected_users)
-                liking_status, message = my_session.like_collected_users(self.idm)
+                liking_status, message = my_session.like_collected_users()
                 self.idm.set_message(message, liking_status)
                 if liking_status:
                     logging.info("Liking collected subscribers is OK")
                 else:
                     logging.warning("Liking collected subscribers is failed")
-
 
         self.idm.restart_stop_status()
         self.idm.deblock_elements()

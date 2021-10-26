@@ -13,10 +13,11 @@ logging.basicConfig(filename='log.log', level=logging.INFO,
 
 
 class Session:
-    def __init__(self, parameters=None, browser=None):
+    def __init__(self, parameters=None, browser=None, idm=None):
         self._parameters = parameters
         self._browser = browser
         self._users = []
+        self._idm = idm
 
     def set_users(self, users):
         self._users = users
@@ -27,7 +28,8 @@ class Session:
     def collect_active_users(self):
         return False, "This function is not available"
 
-    def generate_subscribers(self, size=1, counter=None):
+    def generate_subscribers(self):
+        size = self._parameters.get('percent_people') or 1
         try:
             master_name, master_status, message = self.get_master()
             if not master_status:
@@ -36,7 +38,7 @@ class Session:
             master = Master(master_name, self._browser)
             logging.info(f"Master is {master_name}")
             logging.info(f"Goal is {int(master.get_n_subscribers() * size)} subscribers")
-            all_parsed_clients, potential_clients_status, message = master.get_clients(size=size, counter=counter)
+            all_parsed_clients, potential_clients_status, message = master.get_clients(size=size, counter=self._idm)
             if not all_parsed_clients:
                 return False, message
             self.save_users([master_name], 'Source/parsed_masters.txt')
@@ -46,10 +48,10 @@ class Session:
             return False, "Ошибка: " + str(ex)
 
 
-    def like_collected_users(self, counter) -> (bool, str):
+    def like_collected_users(self) -> (bool, str):
         liked_users = []
         count = 0
-        counter.set_progress(count)
+        self._idm.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users:
             client_name = self._users.pop()
@@ -61,7 +63,7 @@ class Session:
                     client.like_posts(self._parameters)
                     liked_users.append(client_name)
                     count += 1
-                    counter.set_progress(100 * count / n_clients)
+                    self._idm.set_progress(100 * count / n_clients)
                     logging.info(f"Like {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break
@@ -76,7 +78,7 @@ class Session:
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 
-    def filter_subscribers(self, counter) -> (bool, str):
+    def filter_subscribers(self) -> (bool, str):
         for_liking_users = []
         error_count = 0
 
@@ -87,9 +89,9 @@ class Session:
         not_our_client_count = 0
         not_in_range_count = 0
         not_post_count = 0
-        counter.set_progress(count)
+        self._idm.set_progress(count)
         n_clients = self._parameters["n_people"]
-        while self._users and counter.not_stop():
+        while self._users and self._idm.not_stop():
             print("\n")
             client_name = self._users.pop()
             print("Клиент: " + client_name)
@@ -151,7 +153,7 @@ class Session:
                                 print("Похоже, что он не занимается эпосикдными урашениями")
                             for_liking_users.append(client_name)
                             count += 1
-                            counter.set_progress(100 * count / n_clients)
+                            self._idm.set_progress(100 * count / n_clients)
                             logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
                             if count == n_clients:
                                 break
@@ -165,7 +167,7 @@ class Session:
                     print("Подходит!")
                     for_liking_users.append(client_name)
                     count += 1
-                    counter.set_progress(100 * count / n_clients)
+                    self._idm.set_progress(100 * count / n_clients)
                     logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break

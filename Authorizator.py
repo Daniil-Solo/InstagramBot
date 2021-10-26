@@ -24,6 +24,7 @@ class Authorizator:
                 self._browser = webdriver.Chrome(ChromeDriverManager().install())
             self._browser.get(url='https://www.instagram.com/')
         except WebDriverException:
+            self._browser = None
             return False, "Ошибка: Отсутствует подключение к интернету"
 
         time.sleep(3)

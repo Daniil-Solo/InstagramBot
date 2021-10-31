@@ -47,8 +47,12 @@ class Session:
         except Exception as ex:
             return False, "Ошибка: " + str(ex)
 
-
     def like_collected_users(self) -> (bool, str):
+        self._users = self.read_users_from_file(self._parameters.get('file_name'))
+        if not self._users:
+            logging.warning("Liking collected subscribers is failed")
+            return False, "Ошибка: файл " + self._parameters.get('file_name') + " не найден или пуст!"
+
         liked_users = []
         count = 0
         self._idm.set_progress(count)
@@ -181,7 +185,8 @@ class Session:
                 time.sleep(100)
                 continue
 
-        save_statistics([all_count, count, closed_count, master_count, not_our_client_count, not_in_range_count, not_post_count])
+        save_statistics(
+            [all_count, count, closed_count, master_count, not_our_client_count, not_in_range_count, not_post_count])
         self.write_users_to_file(self._users, self._parameters['input_file_name'])
         self.save_users(for_liking_users, self._parameters['output_file_name'])
         return True, "Пользователи были успешно отфильтрованы"

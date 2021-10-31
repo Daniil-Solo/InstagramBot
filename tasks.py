@@ -46,6 +46,23 @@ class Task(ABC):
         raise NotImplementedError("Данный метод нужно переопределить")
 
 
+class TaskLike(Task):
+    def __init__(self, account, parameters, idm):
+        super().__init__(account)
+        self._parameters = parameters
+        self._idm = idm
+
+    def start(self) -> TaskAnswer:
+        """
+        It likes users
+        """
+        return session_decorate(self.like_users)(self)
+
+    @staticmethod
+    def like_users(session: Session) -> (bool, str):
+        return session.like_collected_users()
+
+
 class TaskFilter(Task):
     AI_FILTER_TYPE = 0
     DEFAULT_FILTER_TYPE = 1

@@ -200,19 +200,12 @@ class HomeWindow(QMainWindow):
         elif self.parameters_manager.check_mode(2):
             self.idm.set_message('Выполняется лайкинг собранных подписчиков, пожалуйста подождите')
             logging.info("Start liking collected subscribers")
-            collected_users = my_session.read_users_from_file(self.parameters_manager.parameters.get('file_name'))
-            if not collected_users:
-                self.idm.set_message("Ошибка: файл " + self.parameters_manager.parameters.get('file_name') +
-                                     " не найден или пуст!", False)
-                logging.warning("Liking collected subscribers is failed")
+            liking_status, message = my_session.like_collected_users()
+            self.idm.set_message(message, liking_status)
+            if liking_status:
+                logging.info("Liking collected subscribers is OK")
             else:
-                my_session.set_users(collected_users)
-                liking_status, message = my_session.like_collected_users()
-                self.idm.set_message(message, liking_status)
-                if liking_status:
-                    logging.info("Liking collected subscribers is OK")
-                else:
-                    logging.warning("Liking collected subscribers is failed")
+                logging.warning("Liking collected subscribers is failed")
 
         self.idm.restart_stop_status()
         self.idm.deblock_elements()

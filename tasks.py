@@ -46,6 +46,36 @@ class Task(ABC):
         raise NotImplementedError("Данный метод нужно переопределить")
 
 
+class TaskFilter(Task):
+    AI_FILTER_TYPE = 0
+    DEFAULT_FILTER_TYPE = 1
+
+    def __init__(self, account, filter_type, parameters, idm):
+        super().__init__(account)
+        self._filter_type = filter_type
+        self._parameters = parameters
+        self._idm = idm
+
+    def start(self) -> TaskAnswer:
+        """
+        It filters users depending on the type of filter
+        """
+        if self._filter_type == self.AI_FILTER_TYPE:
+            return session_decorate(self.filter_ai)(self)
+        elif self._filter_type == self.DEFAULT_FILTER_TYPE:
+            return session_decorate(self.filter_default)(self)
+        else:
+            return TaskAnswer(f"Тип {self._filter_type} для фильтрации подписчиков не определен")
+
+    @staticmethod
+    def filter_ai(session: Session) -> (bool, str):
+        return session.filter_subscribers()
+
+    @staticmethod
+    def filter_default(session: Session) -> (bool, str):
+        return session.filter_subscribers_with_ai()
+
+
 class TaskCollection(Task):
     LAST_SUBSCRIBERS_TYPE = 0
     TOP_LIKERS_TYPE = 1
@@ -61,9 +91,9 @@ class TaskCollection(Task):
         """
         It collects users depending on the type of collection
         """
-        if self._collection_type == TaskCollection.LAST_SUBSCRIBERS_TYPE:
+        if self._collection_type == self.LAST_SUBSCRIBERS_TYPE:
             return session_decorate(self.collect_last_subscribers)(self)
-        elif self._collection_type == TaskCollection.TOP_LIKERS_TYPE:
+        elif self._collection_type == self.TOP_LIKERS_TYPE:
             return session_decorate(self.collect_top_likers)(self)
         else:
             return TaskAnswer(f"Тип {self._collection_type} для сбора подписчиков не определен")

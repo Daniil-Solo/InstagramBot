@@ -78,6 +78,9 @@ class Session:
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 
+    def filter_subscribers_with_ai(self) -> (bool, str):
+        return False, "Данный метод не определен"
+
     def filter_subscribers(self) -> (bool, str):
         for_liking_users = []
         error_count = 0
@@ -108,7 +111,6 @@ class Session:
                     logging.warning(f"TimeError. Finish result: {count}/{n_clients}")
                     break
                 time.sleep(2)
-                error_count = 0
                 if not client.is_correct():
                     print("Ошибка! Страница закрыта или не существет")
                     closed_count += 1
@@ -133,6 +135,7 @@ class Session:
                     time.sleep(self._parameters['timeout'] // 2)
                     continue
                 else:
+                    error_count = 0
                     try:
                         description = client.get_description()
                     except Exception as ex:

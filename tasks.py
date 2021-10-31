@@ -1,23 +1,42 @@
+import json
 from abc import ABC, abstractmethod
 
 from Authorizator import Authorizator
 from Session import Session
 from interface_data import InterfaceDataManger
 
+
+def session_decorate(session_function):
+    def wrapped(self):
+        session = Session(parameters=self._parameters, browser=self._browser, idm=self._idm)
+        status, msg = session_function(session)
+        return TaskAnswer(message=msg, status=status)
+    return wrapped
+
+
+def get_account(alias: str) -> dict or None:
+    with open('Source/authorization.json', 'r') as read_file:
+        auth_accounts = json.load(read_file)
+    for account in auth_accounts:
+        aliases = account.get("alias") or []
+        if alias in aliases:
+            del account['alias']
+            return account
+        else:
+            continue
+    return None
+
+
 class TaskAnswer:
-    def __init__(self, message: str, status=None, data=None):
+    def __init__(self, message: str, status=None):
         self._message = message
         self._status = status
-        self._data = data
 
     def get_message(self) -> str:
         return self._message
 
     def get_status(self) -> bool:
         return self._status
-
-    def get_data(self) -> list:
-        return self._data
 
 
 class Task(ABC):
@@ -41,8 +60,15 @@ class Task(ABC):
     def is_ready_to_start(self) -> bool:
         return bool(self._browser)
 
+    def __hash__(self):
+        return hash(self._account.get('login'))
+
     @abstractmethod
     def start(self):
+        raise NotImplementedError("Данный метод нужно переопределить")
+
+    @abstractmethod
+    def get_name(self) -> str:
         raise NotImplementedError("Данный метод нужно переопределить")
 
 
@@ -51,6 +77,9 @@ class TaskLike(Task):
         super().__init__(account)
         self._parameters = parameters
         self._idm = idm
+
+    def get_name(self) -> str:
+        return "Задача лайкинга"
 
     def start(self) -> TaskAnswer:
         """
@@ -84,6 +113,14 @@ class TaskFilter(Task):
         else:
             return TaskAnswer(f"Тип {self._filter_type} для фильтрации подписчиков не определен")
 
+    def get_name(self) -> str:
+        if self._filter_type == self.AI_FILTER_TYPE:
+            return "Задача фильтрации с помощью ИИ"
+        elif self._filter_type == self.DEFAULT_FILTER_TYPE:
+            return "Задача фильтрации с помощью настроенного фильтра"
+        else:
+            return "Задача неопределенной фильтрации"
+
     @staticmethod
     def filter_ai(session: Session) -> (bool, str):
         return session.filter_subscribers_with_ai()
@@ -102,6 +139,14 @@ class TaskCollection(Task):
         self._collection_type = collection_type
         self._parameters = parameters
         self._idm = idm
+
+    def get_name(self) -> str:
+        if self._collection_type == self.LAST_SUBSCRIBERS_TYPE:
+            return "Задача сбора последних подписчиков"
+        elif self._collection_type == self.TOP_LIKERS_TYPE:
+            return "Задача сбора активных пользователей"
+        else:
+            return "Задача неопределенного сбора подписчиков"
 
     def start(self) -> TaskAnswer:
         """
@@ -123,10 +168,22 @@ class TaskCollection(Task):
         return session.collect_active_users()
 
 
-def session_decorate(session_function):
-    def wrapped(self):
-        session = Session(parameters=self._parameters, browser=self._browser, idm=self._idm)
-        status, msg = session_function(session)
-        users = session.get_users()
-        return TaskAnswer(message=msg, status=status, data=users)
-    return wrapped
+class TaskSequence:
+    def __init__(self, tasks=None):
+        self._tasks = [] if tasks is None else tasks
+
+    def add(self, task: Task):
+        self._tasks.append(task)
+
+    def start(self):
+        for task in self._tasks:
+            print(task.get_name())
+            answer_connection = task.connect()
+            print(answer_connection.get_message)
+            if task.is_ready_to_start():
+                answer_process = task.start()
+                task.complete()
+                print(answer_process.get_message())
+                break
+            else:
+                task.complete()

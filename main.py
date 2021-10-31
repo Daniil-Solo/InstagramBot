@@ -216,52 +216,21 @@ if __name__ == "__main__":
         window.show()
         sys.exit(app.exec_())
     else:
-        with open('Source/authorization.json', 'r') as read_file:
-            auth_accounts = json.load(read_file)
         pm = ParametersManager(init_mode=-1)
         idm = InterfaceDataManger()
 
-        # Collection
-        for account in auth_accounts:
-            if "collector" in (account.get('alias') or []):
-                pm.next_mode(update=True)
-                task_collection = TaskCollection(account, TaskCollection.LAST_SUBSCRIBERS_TYPE, pm.parameters, idm)
-                answer = task_collection.connect()
-                print(answer.get_message())
-                if task_collection.is_ready_to_start():
-                    answer = task_collection.start()
-                    task_collection.complete()
-                    print(answer.get_message())
-                    break
-                else:
-                    task_collection.complete()
+        pm.next_mode(update=True)
+        account1 = get_account("collector")
+        task1 = TaskCollection(account1, TaskCollection.LAST_SUBSCRIBERS_TYPE, pm.parameters, idm)
 
-        # Filter
-        for account in auth_accounts:
-            if "filter" in (account.get('alias') or []):
-                pm.next_mode(update=True)
-                task_filter = TaskFilter(account, TaskFilter.DEFAULT_FILTER_TYPE, pm.parameters, idm)
-                answer = task_filter.connect()
-                print(answer.get_message())
-                if task_filter.is_ready_to_start():
-                    answer = task_filter.start()
-                    task_filter.complete()
-                    print(answer.get_message())
-                    break
-                else:
-                    task_filter.complete()
+        pm.next_mode(update=True)
+        account2 = get_account("filter")
+        task2 = TaskFilter(account2, TaskFilter.DEFAULT_FILTER_TYPE, pm.parameters, idm)
 
-        # Liking
-        for account in auth_accounts:
-            if "liker" in (account.get('alias') or []):
-                pm.next_mode(update=True)
-                task_liking = TaskLike(account, pm.parameters, idm)
-                answer = task_liking.connect()
-                print(answer.get_message())
-                if task_liking.is_ready_to_start():
-                    answer = task_liking.start()
-                    task_liking.complete()
-                    print(answer.get_message())
-                    break
-                else:
-                    task_liking.complete()
+        pm.next_mode(update=True)
+        account3 = get_account("liker")
+        task3 = TaskLike(account3, pm.parameters, idm)
+
+        tasks = [task1, task2, task3]
+        seq = TaskSequence(tasks)
+        seq.start()

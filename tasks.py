@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 
 from Authorizator import Authorizator
 from Session import Session
-
+from interface_data import InterfaceDataManger
 
 class TaskAnswer:
-    def __init__(self, message, status=None, data=None):
+    def __init__(self, message: str, status=None, data=None):
         self._message = message
         self._status = status
         self._data = data
@@ -21,7 +21,7 @@ class TaskAnswer:
 
 
 class Task(ABC):
-    def __init__(self, account):
+    def __init__(self, account: dict):
         self._account = account
         self._browser = None
 
@@ -47,7 +47,7 @@ class Task(ABC):
 
 
 class TaskLike(Task):
-    def __init__(self, account, parameters, idm):
+    def __init__(self, account: dict, parameters: dict, idm: InterfaceDataManger):
         super().__init__(account)
         self._parameters = parameters
         self._idm = idm
@@ -67,7 +67,7 @@ class TaskFilter(Task):
     AI_FILTER_TYPE = 0
     DEFAULT_FILTER_TYPE = 1
 
-    def __init__(self, account, filter_type, parameters, idm):
+    def __init__(self, account: dict, filter_type: int, parameters: dict, idm: InterfaceDataManger):
         super().__init__(account)
         self._filter_type = filter_type
         self._parameters = parameters
@@ -97,7 +97,8 @@ class TaskCollection(Task):
     LAST_SUBSCRIBERS_TYPE = 0
     TOP_LIKERS_TYPE = 1
 
-    def __init__(self, account, master_name, collection_type, parameters, idm):
+    def __init__(self, account: dict, master_name: str, collection_type: int,
+                 parameters: dict, idm: InterfaceDataManger):
         super().__init__(account)
         self._master_name = master_name
         self._collection_type = collection_type

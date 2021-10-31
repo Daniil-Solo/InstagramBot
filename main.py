@@ -3,14 +3,12 @@ import time
 import json
 
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from threading import Thread
 
-from Authorizator import Authorizator
-from Session import Session
 from interface_data import InterfaceDataManger, InterfaceDataMangerThread
 from ParametersManager import ParametersManager
-
+from tasks import *
 import logging
 
 logging.basicConfig(filename='log.log', level=logging.INFO,
@@ -174,11 +172,10 @@ class HomeWindow(QMainWindow):
         if self.parameters_manager.check_mode(0):
             self.idm.set_message('Выполняется сбор подписчиков, пожалуйста подождите')
             logging.info("Start collecting subscribers")
-            generation_status, message = my_session.generate_subscribers()
+            generation_status, message = my_session.collect_subscribers()
             self.idm.set_message(message, generation_status)
             logging.info(f"Real result is {len(my_session.get_users())} subscribers")
             if generation_status:
-                my_session.save_users(my_session.get_users(), self.parameters_manager.parameters.get('file_name'))
                 logging.info(
                     f"The collected users were saved to {self.parameters_manager.parameters.get('file_name')}")
                 logging.info("Collecting subscribers is OK")
@@ -212,7 +209,59 @@ class HomeWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = HomeWindow()
-    window.show()
-    sys.exit(app.exec_())
+    task_on = True
+    if not task_on:
+        app = QApplication(sys.argv)
+        window = HomeWindow()
+        window.show()
+        sys.exit(app.exec_())
+    else:
+        with open('Source/authorization.json', 'r') as read_file:
+            auth_accounts = json.load(read_file)
+        pm = ParametersManager(init_mode=-1)
+        idm = InterfaceDataManger()
+
+        # Collection
+        for account in auth_accounts:
+            if "collector" in (account.get('alias') or []):
+                pm.next_mode(update=True)
+                task_collection = TaskCollection(account, TaskCollection.LAST_SUBSCRIBERS_TYPE, pm.parameters, idm)
+                answer = task_collection.connect()
+                print(answer.get_message())
+                if task_collection.is_ready_to_start():
+                    answer = task_collection.start()
+                    task_collection.complete()
+                    print(answer.get_message())
+                    break
+                else:
+                    task_collection.complete()
+
+        # Filter
+        for account in auth_accounts:
+            if "filter" in (account.get('alias') or []):
+                pm.next_mode(update=True)
+                task_filter = TaskFilter(account, TaskFilter.DEFAULT_FILTER_TYPE, pm.parameters, idm)
+                answer = task_filter.connect()
+                print(answer.get_message())
+                if task_filter.is_ready_to_start():
+                    answer = task_filter.start()
+                    task_filter.complete()
+                    print(answer.get_message())
+                    break
+                else:
+                    task_filter.complete()
+
+        # Liking
+        for account in auth_accounts:
+            if "liker" in (account.get('alias') or []):
+                pm.next_mode(update=True)
+                task_liking = TaskLike(account, pm.parameters, idm)
+                answer = task_liking.connect()
+                print(answer.get_message())
+                if task_liking.is_ready_to_start():
+                    answer = task_liking.start()
+                    task_liking.complete()
+                    print(answer.get_message())
+                    break
+                else:
+                    task_liking.complete()

@@ -39,9 +39,15 @@ class InterfaceDataManger:
         self.message += message
         self.save_data()
 
+    def get_message(self):
+        return self.message[1:]
+
     def set_progress(self, value):
         self.progress_value = value
         self.save_data()
+
+    def get_progress(self):
+        return self.progress_value
 
     def block_start_elements(self):
         self.blocked_elements = ['upb', 'stb', 'cmb', 'spb']

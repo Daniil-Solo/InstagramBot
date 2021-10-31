@@ -86,21 +86,19 @@ class TaskFilter(Task):
 
     @staticmethod
     def filter_ai(session: Session) -> (bool, str):
-        return session.filter_subscribers()
+        return session.filter_subscribers_with_ai()
 
     @staticmethod
     def filter_default(session: Session) -> (bool, str):
-        return session.filter_subscribers_with_ai()
+        return session.filter_subscribers()
 
 
 class TaskCollection(Task):
     LAST_SUBSCRIBERS_TYPE = 0
     TOP_LIKERS_TYPE = 1
 
-    def __init__(self, account: dict, master_name: str, collection_type: int,
-                 parameters: dict, idm: InterfaceDataManger):
+    def __init__(self, account: dict, collection_type: int, parameters: dict, idm: InterfaceDataManger):
         super().__init__(account)
-        self._master_name = master_name
         self._collection_type = collection_type
         self._parameters = parameters
         self._idm = idm
@@ -118,7 +116,7 @@ class TaskCollection(Task):
 
     @staticmethod
     def collect_last_subscribers(session: Session) -> (bool, str):
-        return session.generate_subscribers()
+        return session.collect_subscribers()
 
     @staticmethod
     def collect_top_likers(session: Session) -> (bool, str):

@@ -28,7 +28,7 @@ class Session:
     def collect_active_users(self):
         return False, "This function is not available"
 
-    def generate_subscribers(self):
+    def collect_subscribers(self):
         size = self._parameters.get('percent_people') or 1
         try:
             master_name, master_status, message = self.get_master()
@@ -43,6 +43,7 @@ class Session:
                 return False, message
             self.save_users([master_name], 'Source/parsed_masters.txt')
             self._users = all_parsed_clients
+            self.save_users(self._users, self._parameters.get('file_name'))
             return True, "Сбор завершен успешно"
         except Exception as ex:
             return False, "Ошибка: " + str(ex)
@@ -86,6 +87,10 @@ class Session:
         return False, "Данный метод не определен"
 
     def filter_subscribers(self) -> (bool, str):
+        self._users = self.read_users_from_file(self._parameters.get('input_file_name'))
+        if not self._users:
+            return False, "Ошибка: файл " + self._parameters.get('input_file_name') + " не найден или пуст!"
+
         for_liking_users = []
         error_count = 0
 
@@ -105,11 +110,6 @@ class Session:
             all_count += 1
             try:
                 client = Subscriber(client_name, self._browser)
-                if error_count > 3:
-                    self._users.append(client_name)
-                    print("Ошибка! Превышено число ошибочных попыток")
-                    logging.warning(f"CountError. Finish result: {count}/{n_clients}")
-                    break
                 if client.is_error_wait_some_minutes():
                     print("Ошибка! Требуется подождать")
                     logging.warning(f"TimeError. Finish result: {count}/{n_clients}")
@@ -182,8 +182,14 @@ class Session:
             except Exception as ex:
                 error_count += 1
                 print(f"Глобальная ошибка! {ex}")
-                time.sleep(100)
-                continue
+                time.sleep(10)
+                if error_count > 2:
+                    self._users.append(client_name)
+                    print("Ошибка! Превышено число ошибочных попыток")
+                    logging.warning(f"CountError. Finish result: {count}/{n_clients}")
+                    break
+                else:
+                    continue
 
         save_statistics(
             [all_count, count, closed_count, master_count, not_our_client_count, not_in_range_count, not_post_count])

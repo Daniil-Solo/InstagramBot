@@ -52,6 +52,9 @@ class Authorizator:
         try:
             with open('Source/authorization.json', 'r') as read_file:
                 auth_parameters = json.load(read_file)
+                for i in range(len(auth_parameters)):
+                    if 'alias' in auth_parameters[i].keys():
+                        del auth_parameters[i]['alias']
             if data in auth_parameters:
                 return
             elif data['login'] in [item['login'] for item in auth_parameters]:

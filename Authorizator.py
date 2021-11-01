@@ -37,35 +37,11 @@ class Authorizator:
             self._browser = None
             return False, "Ошибка: Неправильный логин или пароль"
         except NoSuchElementException:
-            self.save_authorization_data()
             return True, "Вход выполнен успешно"
 
     def close_browser(self):
         self._browser.close()
         self._browser.quit()
-
-    def save_authorization_data(self):
-        data = {
-            "login": self._login,
-            "password": self._password
-        }
-        try:
-            with open('Source/authorization.json', 'r') as read_file:
-                auth_parameters = json.load(read_file)
-                for i in range(len(auth_parameters)):
-                    if 'alias' in auth_parameters[i].keys():
-                        del auth_parameters[i]['alias']
-            if data in auth_parameters:
-                return
-            elif data['login'] in [item['login'] for item in auth_parameters]:
-                auth_parameters['password'] = data['password']
-            else:
-                auth_parameters.append(data)
-            with open('Source/authorization.json', "w") as write_file:
-                json.dump(auth_parameters, write_file)
-        except FileNotFoundError:
-            with open('Source/authorization.json', "w") as write_file:
-                json.dump([data], write_file)
 
     def fill_login_and_password_and_press_enter(self, time_out=1):
         username_input = self._browser.find_element_by_name('username')

@@ -1,3 +1,5 @@
+import csv
+import datetime
 import json
 from yaml import load, SafeLoader
 
@@ -29,3 +31,14 @@ def get_account(alias: str) -> dict or None:
         return None
     except FileNotFoundError:
         return None
+
+
+def save_statistics(count_list: list):
+    current_date = datetime.datetime.now()
+    row = [str(current_date)]
+    for count in count_list:
+        row.append(str(count))
+
+    with open('filter_data.csv', 'a', newline='') as csv_file:
+        writer = csv.writer(csv_file, delimiter=';')
+        writer.writerow(row)

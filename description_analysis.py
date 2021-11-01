@@ -62,16 +62,6 @@ def is_company(hash_tokens):
     return bool(general_set)
 
 
-def is_human(hash_tokens):
-    global hash_human_words
-    # for hash_token in hash_tokens:
-    #    if hash_token in hash_human_words:
-    #        return True
-    #    else:
-    #        pass
-    return True
-
-
 def is_relevant_language(text) -> bool:
     try:
         predict = detect(text)

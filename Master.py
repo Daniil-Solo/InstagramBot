@@ -8,10 +8,10 @@ class Master(User):
     def __init__(self, name, browser):
         super().__init__(name, browser)
 
-    def get_clients(self, size=1, counter=None):
+    def get_clients(self, size=1):
         try:
             self.get_n_subscribers()
-            self.scroll_down(count_subscribers=int(self.n_subscribers * size), counter=counter)
+            self.scroll_down(count_subscribers=int(self.n_subscribers * size))
             subscriber_names = self.find_subscribers_names()
             return subscriber_names, True, ""
         except Exception as ex:
@@ -27,21 +27,17 @@ class Master(User):
             follower_names.append(follower_name)
         return follower_names
 
-    def scroll_down(self, count_subscribers, counter=None):
+    def scroll_down(self, count_subscribers):
         loop_count = min(count_subscribers // 12, 30)
         subs_button = '/html/body/div[1]/section/main/div/header/section/ul/li[2]/a/span'
         self._browser.find_element_by_xpath(subs_button).click()
         time.sleep(2)
         followers_panel = self._browser.find_element_by_xpath('/html/body/div[6]/div/div/div[2]')
-        if counter:
-            counter.set_progress(0)
         for i in range(loop_count):
             self._browser.execute_script(
                 "arguments[0].scrollTop = arguments[0].scrollHeight", followers_panel
             )
             time.sleep(random.randrange(4, 5))
-            if counter:
-                counter.set_progress(int(100 * (i + 1) / loop_count))
 
     def is_unique(self):
         try:

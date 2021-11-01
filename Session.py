@@ -4,9 +4,10 @@ from Master import Master
 from Subscriber import Subscriber
 from User import User
 from description_analysis import is_our_client, is_master, is_specific_master
-from saving_descriprion import save_statistics
 
 import logging
+
+from service_functions import save_statistics
 
 logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(asctime)s * %(levelname)s * %(message)s')

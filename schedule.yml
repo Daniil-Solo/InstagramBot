@@ -1,0 +1,11 @@
+parameters_filename: Source/parameters.json
+auth_filename: Source/authorization.json
+tasks:
+-
+  alias: collector
+  type: 0 # TaskCollection.LAST_SUBSCRIBERS_TYPE
+-
+  alias: filter
+  type: 1 # TaskFilter.DEFAULT_FILTER_TYPE
+-
+  alias: liker

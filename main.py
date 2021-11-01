@@ -1,13 +1,13 @@
 import sys
-import time
 import json
-
+from yaml import load, SafeLoader
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from threading import Thread
 
 from interface_data import InterfaceDataManger, InterfaceDataMangerThread
 from ParametersManager import ParametersManager
+from service_functions import get_account
 from tasks import *
 import logging
 
@@ -216,21 +216,11 @@ if __name__ == "__main__":
         window.show()
         sys.exit(app.exec_())
     else:
-        pm = ParametersManager(init_mode=-1)
-        idm = InterfaceDataManger()
-
-        pm.next_mode(update=True)
-        account1 = get_account("collector")
-        task1 = TaskCollection(account1, TaskCollection.LAST_SUBSCRIBERS_TYPE, pm.parameters, idm)
-
-        pm.next_mode(update=True)
-        account2 = get_account("filter")
-        task2 = TaskFilter(account2, TaskFilter.DEFAULT_FILTER_TYPE, pm.parameters, idm)
-
-        pm.next_mode(update=True)
-        account3 = get_account("liker")
-        task3 = TaskLike(account3, pm.parameters, idm)
-
-        tasks = [task1, task2, task3]
-        seq = TaskSequence(tasks)
-        seq.start()
+        task_configs = load(open("schedule.yml"), Loader=SafeLoader).get("tasks")
+        seq = TaskSequence()
+        for task_config in task_configs:
+            task_name = task_config.get("alias")
+            account = get_account(task_name)
+            task_type = task_config.get("type")
+            seq.create_and_add_task(account, task_name, task_type)
+        seq.run()

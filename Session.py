@@ -13,11 +13,10 @@ logging.basicConfig(filename='log.log', level=logging.INFO,
 
 
 class Session:
-    def __init__(self, parameters=None, browser=None, idm=None):
+    def __init__(self, parameters=None, browser=None):
         self._parameters = parameters
         self._browser = browser
         self._users = []
-        self._idm = idm
 
     def set_users(self, users):
         self._users = users
@@ -38,7 +37,7 @@ class Session:
             master = Master(master_name, self._browser)
             logging.info(f"Master is {master_name}")
             logging.info(f"Goal is {int(master.get_n_subscribers() * size)} subscribers")
-            all_parsed_clients, potential_clients_status, message = master.get_clients(size=size, counter=self._idm)
+            all_parsed_clients, potential_clients_status, message = master.get_clients(size=size)
             if not all_parsed_clients:
                 return False, message
             self.save_users([master_name], 'Source/parsed_masters.txt')
@@ -56,7 +55,6 @@ class Session:
 
         liked_users = []
         count = 0
-        self._idm.set_progress(count)
         n_clients = self._parameters["n_people"]
         while self._users:
             client_name = self._users.pop()
@@ -68,7 +66,6 @@ class Session:
                     client.like_posts(self._parameters)
                     liked_users.append(client_name)
                     count += 1
-                    self._idm.set_progress(100 * count / n_clients)
                     logging.info(f"Like {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break
@@ -101,9 +98,8 @@ class Session:
         not_our_client_count = 0
         not_in_range_count = 0
         not_post_count = 0
-        self._idm.set_progress(count)
         n_clients = self._parameters["n_people"]
-        while self._users and self._idm.not_stop():
+        while self._users:
             print("\n")
             client_name = self._users.pop()
             print("Клиент: " + client_name)
@@ -160,7 +156,6 @@ class Session:
                                 print("Похоже, что он не занимается эпосикдными урашениями")
                             for_liking_users.append(client_name)
                             count += 1
-                            self._idm.set_progress(100 * count / n_clients)
                             logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
                             if count == n_clients:
                                 break
@@ -174,7 +169,6 @@ class Session:
                     print("Подходит!")
                     for_liking_users.append(client_name)
                     count += 1
-                    self._idm.set_progress(100 * count / n_clients)
                     logging.info(f"Add {client_name} - {str(count)}/{str(n_clients)}")
                     if count == n_clients:
                         break

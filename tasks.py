@@ -1,30 +1,16 @@
-import json
 from abc import ABC, abstractmethod
 
 from Authorizator import Authorizator
 from Session import Session
-from interface_data import InterfaceDataManger
+from service_functions import get_parameters
 
 
 def session_decorate(session_function):
     def wrapped(self):
-        session = Session(parameters=self._parameters, browser=self._browser, idm=self._idm)
+        session = Session(parameters=self._parameters, browser=self._browser)
         status, msg = session_function(session)
         return TaskAnswer(message=msg, status=status)
     return wrapped
-
-
-def get_account(alias: str) -> dict or None:
-    with open('Source/authorization.json', 'r') as read_file:
-        auth_accounts = json.load(read_file)
-    for account in auth_accounts:
-        aliases = account.get("alias") or []
-        if alias in aliases:
-            del account['alias']
-            return account
-        else:
-            continue
-    return None
 
 
 class TaskAnswer:
@@ -42,6 +28,7 @@ class TaskAnswer:
 class Task(ABC):
     def __init__(self, account: dict):
         self._account = account
+        self._parameters = None
         self._browser = None
 
     def connect(self) -> TaskAnswer:
@@ -60,9 +47,6 @@ class Task(ABC):
     def is_ready_to_start(self) -> bool:
         return bool(self._browser)
 
-    def __hash__(self):
-        return hash(self._account.get('login'))
-
     @abstractmethod
     def start(self):
         raise NotImplementedError("Данный метод нужно переопределить")
@@ -73,10 +57,8 @@ class Task(ABC):
 
 
 class TaskLike(Task):
-    def __init__(self, account: dict, parameters: dict, idm: InterfaceDataManger):
+    def __init__(self, account: dict):
         super().__init__(account)
-        self._parameters = parameters
-        self._idm = idm
 
     def get_name(self) -> str:
         return "Задача лайкинга"
@@ -85,6 +67,7 @@ class TaskLike(Task):
         """
         It likes users
         """
+        self._parameters = get_parameters("like_collected_subscribers")
         return session_decorate(self.like_users)(self)
 
     @staticmethod
@@ -96,19 +79,19 @@ class TaskFilter(Task):
     AI_FILTER_TYPE = 0
     DEFAULT_FILTER_TYPE = 1
 
-    def __init__(self, account: dict, filter_type: int, parameters: dict, idm: InterfaceDataManger):
+    def __init__(self, account: dict, filter_type: int):
         super().__init__(account)
         self._filter_type = filter_type
-        self._parameters = parameters
-        self._idm = idm
 
     def start(self) -> TaskAnswer:
         """
         It filters users depending on the type of filter
         """
         if self._filter_type == self.AI_FILTER_TYPE:
+            self._parameters = get_parameters("ai_filter_subscribers")
             return session_decorate(self.filter_ai)(self)
         elif self._filter_type == self.DEFAULT_FILTER_TYPE:
+            self._parameters = get_parameters("filter_subscribers")
             return session_decorate(self.filter_default)(self)
         else:
             return TaskAnswer(f"Тип {self._filter_type} для фильтрации подписчиков не определен")
@@ -134,16 +117,16 @@ class TaskCollection(Task):
     LAST_SUBSCRIBERS_TYPE = 0
     TOP_LIKERS_TYPE = 1
 
-    def __init__(self, account: dict, collection_type: int, parameters: dict, idm: InterfaceDataManger):
+    def __init__(self, account: dict, collection_type: int):
         super().__init__(account)
         self._collection_type = collection_type
-        self._parameters = parameters
-        self._idm = idm
 
     def get_name(self) -> str:
         if self._collection_type == self.LAST_SUBSCRIBERS_TYPE:
+            self._parameters = get_parameters("collect_subscribers")
             return "Задача сбора последних подписчиков"
         elif self._collection_type == self.TOP_LIKERS_TYPE:
+            self._parameters = get_parameters("collect_likers")
             return "Задача сбора активных пользователей"
         else:
             return "Задача неопределенного сбора подписчиков"
@@ -172,18 +155,26 @@ class TaskSequence:
     def __init__(self, tasks=None):
         self._tasks = [] if tasks is None else tasks
 
-    def add(self, task: Task):
+    def add_task(self, task: Task):
         self._tasks.append(task)
 
-    def start(self):
+    def create_and_add_task(self, account: dict, task_name: str, task_type: int or None):
+        if task_name == "collector":
+            task = TaskCollection(account, task_type)
+        elif task_name == "filter":
+            task = TaskFilter(account, task_type)
+        elif task_name == "liker":
+            task = TaskLike(account)
+        else:
+            return
+        self.add_task(task)
+
+    def run(self):
         for task in self._tasks:
             print(task.get_name())
             answer_connection = task.connect()
-            print(answer_connection.get_message)
+            print(answer_connection.get_message())
             if task.is_ready_to_start():
                 answer_process = task.start()
-                task.complete()
                 print(answer_process.get_message())
-                break
-            else:
-                task.complete()
+            task.complete()

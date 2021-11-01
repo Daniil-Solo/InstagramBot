@@ -1,6 +1,7 @@
 .idea
 __pycache__
 .ipynb_checkpoints
+venv
 Source/authorization.json
 Source/unliked_users.json
 Source/liked_users.json

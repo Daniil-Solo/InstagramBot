@@ -5,8 +5,7 @@ import logging
 
 logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(asctime)s * %(levelname)s * %(message)s')
-wdm_loger = logging.getLogger('WDM')
-wdm_loger.disabled = True
+logging.getLogger('WDM').disabled = True
 
 
 if __name__ == "__main__":

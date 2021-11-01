@@ -1,4 +1,7 @@
+import random
 import time
+
+from selenium.common.exceptions import NoSuchElementException
 
 from Master import Master
 from Subscriber import Subscriber
@@ -26,7 +29,86 @@ class Session:
         return self._users
 
     def collect_active_users(self):
-        return False, "This function is not available"
+        try:
+            master_name, master_status, message = self.get_master()
+            if not master_status:
+                return False, message
+            master = Subscriber(master_name, self._browser)
+            logging.info(f"Master is {master_name}")
+            posts = master.get_post()[:self._parameters['n_posts']]
+            n_without_error_posts = len(posts)
+            user_freq_dict = dict()
+
+            for index, post_url in enumerate(posts):
+                try:
+                    post_likers = set()
+                    self._browser.get(post_url)
+                    time.sleep(3)
+                    like_info_block = self._browser.find_element_by_xpath("/html/body/div[1]/section/main/div/div[1]/"
+                                                                "article/div/div[2]/div/div[2]/section[2]/div/div/a")
+                    if like_info_block.text == "":
+                        like_info_block = self._browser.find_element_by_xpath("/html/body/div[1]/section/main/div/"
+                                                "div[1]//article/div/div[2]/div/div[2]/section[2]/div/div[2]/a/span")
+
+                    text_number = ""
+                    for letter in like_info_block.text:
+                        if letter.isdigit():
+                            text_number += letter
+                    n_users = int(text_number)
+
+                    like_info_block.click()
+                    time.sleep(3)
+
+                    try:
+                        liked_users_panel = self._browser.find_element_by_xpath("/html/body/div[6]/div/div/div[2]/div")
+                    except NoSuchElementException:
+                        liked_users_panel = self._browser.find_element_by_xpath("/html/body/div[5]/div/div/div[2]/div")
+                    print(str(index + 1) + f" of {len(posts)}")
+
+                    for _ in range(max(1, n_users // 17)):
+                        time.sleep(random.randrange(3, 4))
+                        self._browser.execute_script(
+                            "arguments[0].scrollTop = arguments[0].scrollHeight", liked_users_panel
+                        )
+                        time.sleep(5)
+                        users_block = self._browser.find_element_by_xpath("/html/body/div[6]/div/div/div[2]/div/div")
+                        user_blocks = users_block.find_elements_by_tag_name('a')
+                        users = [user_block.get_attribute('title') for user_block in user_blocks if
+                                 user_block.get_attribute('title') != '']
+                        print(users[:3])
+                        for user in users:
+                            post_likers.add(user)
+
+                        for liker in post_likers:
+                            if liker in user_freq_dict:
+                                user_freq_dict[liker] += 1
+                            else:
+                                user_freq_dict[liker] = 1
+                except Exception as ex:
+                    print(ex)
+                    n_without_error_posts = n_without_error_posts - 1
+                time.sleep(20)
+
+            user_freq_list = []
+            for user_name in user_freq_dict:
+                user_and_freq = (user_name, user_freq_dict[user_name] / n_without_error_posts)
+                user_freq_list.append(user_and_freq)
+
+            collected_users = self.get_active_likers(user_freq_list, threshold=self._parameters['freq'])
+            with open(self._parameters['filename'], 'a') as write_file:
+                for user in collected_users:
+                    write_file.write(user + '\n')
+            return True, "Сбор завершен успешно"
+        except Exception as ex:
+            return False, "Ошибка: " + str(ex)
+
+    @staticmethod
+    def get_active_likers(user_freq_list, threshold=0):
+        active_likers = []
+        for user, freq in user_freq_list:
+            if freq >= threshold:
+                active_likers.append(user)
+        return active_likers
 
     def collect_subscribers(self):
         size = self._parameters.get('percent_people') or 1

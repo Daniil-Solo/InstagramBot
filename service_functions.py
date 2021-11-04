@@ -24,7 +24,7 @@ def get_account(alias: str) -> dict or None:
         with open(filename, 'r') as read_file:
             auth_accounts = json.load(read_file)
         for account in auth_accounts:
-            aliases = account.get("alias") or []
+            aliases = account.get("alias") or ''
             if alias in aliases:
                 del account['alias']
                 return account

@@ -159,11 +159,11 @@ class TaskSequence:
         self._tasks.append(task)
 
     def create_and_add_task(self, account: dict, task_name: str, task_type: int or None):
-        if task_name == "collector":
+        if "collector" in task_name:
             task = TaskCollection(account, task_type)
-        elif task_name == "filter":
+        elif "filter" in task_name:
             task = TaskFilter(account, task_type)
-        elif task_name == "liker":
+        elif "liker" in task_name:
             task = TaskLike(account)
         else:
             return

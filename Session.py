@@ -95,7 +95,7 @@ class Session:
                 user_freq_list.append(user_and_freq)
 
             collected_users = self.get_active_likers(user_freq_list, threshold=self._parameters['freq'])
-            with open(self._parameters['filename'], 'a') as write_file:
+            with open(self._parameters['file_name'], 'a') as write_file:
                 for user in collected_users:
                     write_file.write(user + '\n')
             return True, "Сбор завершен успешно"
@@ -137,7 +137,9 @@ class Session:
             return False, "Ошибка: файл " + self._parameters.get('file_name') + " не найден или пуст!"
 
         liked_users = []
+        unliked_users = []
         count = 0
+        error_count = 0
         n_clients = self._parameters["n_people"]
         while self._users:
             client_name = self._users.pop()
@@ -156,10 +158,13 @@ class Session:
                 else:
                     time.sleep(5)
             except Exception:
-                print(client_name)
+                unliked_users.append(client_name)
+                error_count += 1
+                if error_count >= 2:
+                    break
                 continue
 
-        self.write_users_to_file(self._users, self._parameters['file_name'])
+        self.write_users_to_file(self._users + unliked_users, self._parameters['file_name'])
         self.save_users(liked_users, "Source/liked_users.txt")
         return True, "Лайки были успешно проставлены"
 

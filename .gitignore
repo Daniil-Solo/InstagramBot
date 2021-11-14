@@ -2,6 +2,7 @@
 __pycache__
 .ipynb_checkpoints
 venv
+Source/sessions
 Source/authorization.json
 Source/unliked_users.json
 Source/liked_users.json

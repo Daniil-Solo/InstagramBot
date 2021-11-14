@@ -34,8 +34,9 @@ class Task(ABC):
     def connect(self) -> TaskAnswer:
         login = self._account.get('login') or ''
         password = self._account.get('password') or ''
+        name = self._account.get("name") or ''
         auth = Authorizator()
-        status, message = auth.authorizate(login=login, password=password)
+        status, message = auth.authorizate(login=login, password=password, name=name)
         self._browser = auth.get_browser()
         if self._browser is None:
             self.complete()

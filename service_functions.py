@@ -26,7 +26,6 @@ def get_account(alias: str) -> dict or None:
         for account in auth_accounts:
             aliases = account.get("alias") or ''
             if alias in aliases:
-                del account['alias']
                 return account
         return None
     except FileNotFoundError:

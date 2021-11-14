@@ -67,10 +67,6 @@ class Session:
 
                     for _ in range(max(1, n_users // 17)):
                         time.sleep(random.randrange(3, 4))
-                        self._browser.execute_script(
-                            "arguments[0].scrollTop = arguments[0].scrollHeight", liked_users_panel
-                        )
-                        time.sleep(5)
                         users_block = self._browser.find_element_by_xpath("/html/body/div[6]/div/div/div[2]/div/div")
                         user_blocks = users_block.find_elements_by_tag_name('a')
                         users = [user_block.get_attribute('title') for user_block in user_blocks if
@@ -84,6 +80,10 @@ class Session:
                                 user_freq_dict[liker] += 1
                             else:
                                 user_freq_dict[liker] = 1
+                        self._browser.execute_script(
+                            "arguments[0].scrollTop = arguments[0].scrollHeight", liked_users_panel
+                        )
+                        time.sleep(5)
                 except Exception as ex:
                     print(ex)
                     n_without_error_posts = n_without_error_posts - 1

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from Authorizator import Authorizator
 from Session import Session
-from service_functions import get_parameters
+from service_functions import get_parameters, update_account_last_time
 
 
 def session_decorate(session_function):
@@ -40,6 +40,7 @@ class Task(ABC):
         self._browser = auth.get_browser()
         if self._browser is None:
             self.complete()
+        update_account_last_time(self._account)
         return TaskAnswer(message, status)
 
     def complete(self) -> None:

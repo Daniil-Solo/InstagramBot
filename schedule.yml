@@ -4,3 +4,5 @@ tasks:
 -
   alias: filter1
   type: 1
+-
+  alias: liker

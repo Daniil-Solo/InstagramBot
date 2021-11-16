@@ -2,7 +2,22 @@ parameters_filename: Source/parameters.json
 auth_filename: Source/authorization.json
 tasks:
 -
-  alias: filter1
+  alias: collector
+  type: 0
+-
+  alias: collector
+  type: 0
+-
+  alias: collector
+  type: 0
+-
+  alias: filter
+  type: 1
+-
+  alias: filter
+  type: 1
+-
+  alias: filter
   type: 1
 -
   alias: liker

@@ -15,5 +15,5 @@ if __name__ == "__main__":
         task_name = task_config.get("alias")
         account = get_account(task_name)
         task_type = task_config.get("type")
-        seq.create_and_add_task(account, task_name, task_type)
+        seq.create_and_run_task(account, task_name, task_type)
     seq.run()

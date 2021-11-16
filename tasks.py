@@ -161,15 +161,31 @@ class TaskSequence:
         self._tasks.append(task)
 
     def create_and_add_task(self, account: dict, task_name: str, task_type: int or None):
+        task = self.switch_task(account, task_name, task_type)
+        if task is not None:
+            self.add_task(task)
+
+    @staticmethod
+    def switch_task(account: dict, task_name: str, task_type: int or None) -> Task or None:
         if "collector" in task_name:
-            task = TaskCollection(account, task_type)
+            return TaskCollection(account, task_type)
         elif "filter" in task_name:
-            task = TaskFilter(account, task_type)
+            return TaskFilter(account, task_type)
         elif "liker" in task_name:
-            task = TaskLike(account)
+            return TaskLike(account)
         else:
-            return
-        self.add_task(task)
+            return None
+
+    def create_and_run_task(self, account: dict, task_name: str, task_type: int or None):
+        task = self.switch_task(account, task_name, task_type)
+        if task is not None:
+            print(task.get_name())
+            answer_connection = task.connect()
+            print(answer_connection.get_message())
+            if task.is_ready_to_start():
+                answer_process = task.start()
+                print(answer_process.get_message())
+            task.complete()
 
     def run(self):
         for task in self._tasks:

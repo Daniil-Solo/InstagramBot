@@ -32,9 +32,8 @@ def get_account(alias: str) -> dict or None:
                 if not account.get("last_time"):
                     account["last_time"] = 0
                 satisfied_accounts.append(account)
-        sorted(satisfied_accounts, key=lambda a: a.get("last_time"))
         if len(satisfied_accounts) != 0:
-            sorted(satisfied_accounts, key=lambda a: a.get("last_time"))
+            satisfied_accounts = sorted(satisfied_accounts, key=lambda a: a.get("last_time"))
             return satisfied_accounts[0]
         return None
     except FileNotFoundError:

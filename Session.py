@@ -216,11 +216,11 @@ class Session:
                 elif not client.has_posts():
                     print("Ошибка! Не имеет постов")
                     not_post_count += 1
-                    time.sleep(self._parameters['timeout'] // 2)
+                    time.sleep(self._parameters['timeout'])
                     continue
                 elif client.get_n_post() < 5:
                     print("Ошибка! Меньше 5 постов")
-                    time.sleep(self._parameters['timeout'] // 2)
+                    time.sleep(self._parameters['timeout'])
                     continue
                 else:
                     error_count = 0

@@ -38,8 +38,9 @@ class Task(ABC):
         auth = Authorizator()
         status, message = auth.authorizate(login=login, password=password, name=name)
         self._browser = auth.get_browser()
-        if self._browser is None:
+        if not self._browser or not status:
             self.complete()
+            self._browser = None
         update_account_last_time(self._account)
         return TaskAnswer(message, status)
 

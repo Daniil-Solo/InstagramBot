@@ -37,6 +37,8 @@ class Authorizator:
                 self.remove_notification()
                 if self.is_auth_success():
                     return True, "Вход выполнен успешно"
+                elif self.is_blocked():
+                    return False, "Аккаунт заблокирован"
                 else:
                     pass
         except FileNotFoundError:
@@ -73,6 +75,26 @@ class Authorizator:
             return True
         except NoSuchElementException:
             return False
+
+    def is_blocked(self):
+        xpaths = [
+            "/html/body/div[1]/section/main/div/div/h2",
+            "/html/body/div[1]/section/div/div/div[1]/h2",
+            "/html/body/div[1]/section/main/div[2]/div/div/div/div[2]/h2",
+        ]
+        messages = [
+            "страница недоступна",
+            "владеете этим аккаунтом",
+            "свою информацию",
+        ]
+        for xpath, msg in zip(xpaths, messages):
+            try:
+                text = self._browser.find_element_by_xpath(xpath).text
+                if msg in text:
+                    return True
+            except NoSuchElementException:
+                pass
+        return False
 
     def close_browser(self):
         self._browser.close()
